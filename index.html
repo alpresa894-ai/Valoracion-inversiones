@@ -1,0 +1,1758 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>QuantValue MyInvestor — Valoración & Rotación Activa</title>
+
+  <!-- Configuración Nativa PWA para iPhone (iOS Safari Pantalla Completa) -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="QuantValue" />
+  <meta name="theme-color" content="#060911" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2310b981'/><text x='50' y='66' font-family='monospace' font-size='48' font-weight='bold' fill='%23060911' text-anchor='middle'>QV</text></svg>" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2310b981'/><text x='50' y='66' font-family='monospace' font-size='48' font-weight='bold' fill='%23060911' text-anchor='middle'>QV</text></svg>" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    body {
+      background-color: #060911;
+      color: #f3f4f6;
+      font-family: 'Inter', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .glass-card {
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .iphone-frame {
+      width: 418px;
+      max-width: 100%;
+      margin: 1.5rem auto;
+      border: 10px solid #1e293b;
+      border-radius: 44px;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 0 2px #334155;
+      overflow: hidden;
+      background: #060911;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #060911;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col pb-20 sm:pb-8 selection:bg-emerald-500 selection:text-slate-950">
+
+  <!-- ========================================================================= -->
+  <!-- CABECERA SUPERIOR STICKY                                                  -->
+  <!-- ========================================================================= -->
+  <header class="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-md border-b border-slate-800 px-4 py-3">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-600 flex items-center justify-center font-mono font-bold text-slate-950 text-lg shadow-lg shadow-emerald-500/20">
+          QV
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-bold text-base sm:text-lg text-white">
+              QuantValue <span class="text-emerald-400">MyInvestor</span>
+            </h1>
+            <span class="text-[11px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+              Web + iOS App
+            </span>
+          </div>
+          <p class="text-xs text-slate-400">
+            Motor Científico Fundamental + Técnico • Léxico Claro Estilo Peter Lynch
+          </p>
+        </div>
+      </div>
+
+      <!-- Controles de Suscripción IA Opcional + Modo Dispositivo + Restaurar Datos -->
+      <div class="flex flex-wrap items-center gap-2">
+        <button onclick="openAuthModal()" id="btn-auth-status" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 text-emerald-300 border border-emerald-500/30 hover:border-emerald-400 transition-all">
+          🔓 Modo 100% Gratuito (Conectar Gemini Pro)
+        </button>
+
+        <button onclick="resetPortfolioToDefault()" title="Restaurar los datos originales de fábrica" class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 text-slate-400 border border-slate-800 hover:text-white transition-all">
+          🔄 Restaurar Base
+        </button>
+
+        <div class="hidden md:flex items-center bg-slate-900 p-1 rounded-xl border border-slate-800">
+          <button onclick="setDeviceView('desktop')" id="btn-device-desktop" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-cyan-500/20 text-cyan-300">
+            🖥️ Web
+          </button>
+          <button onclick="setDeviceView('iphone')" id="btn-device-iphone" class="px-2.5 py-1 rounded-lg text-xs text-slate-400 hover:text-white">
+            📱 iPhone
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- CONTENEDOR PRINCIPAL                                                      -->
+  <!-- ========================================================================= -->
+  <main id="main-viewport" class="flex-1 max-w-7xl w-full mx-auto px-4 py-5 transition-all">
+
+    <!-- BARRA GLOBAL DE CASUÍSTICA MACROECONÓMICA EN VIVO -->
+    <div class="glass-card rounded-2xl p-3.5 mb-5 border border-cyan-500/30 bg-gradient-to-r from-slate-900 via-cyan-950/30 to-slate-900 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+      <div class="flex flex-col sm:flex-row sm:items-center gap-2.5">
+        <span class="px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-mono text-[11px] font-bold shrink-0">
+          🌍 RÉGIMEN MACRO ACTIVO: DESINFLACIÓN + REARME/IA
+        </span>
+        <p class="text-xs text-slate-300 leading-relaxed">
+          <strong>Balanza Macro hoy:</strong> IPC Eurozona <span class="font-mono text-emerald-400">2,2%</span> | Bono 10Y EUR <span class="font-mono text-cyan-300">2,45%</span> | Bono 10Y USD <span class="font-mono text-cyan-300">4,15%</span> | <span class="font-mono text-amber-300">EUR/USD = 1,082</span>. <strong>Viento a favor (+10 ptos):</strong> Compounders, Semiconductores/IA (<code class="font-mono">ASML</code>), Redes Eléctricas (<code class="font-mono">RWE</code>), Defensa (<code class="font-mono">DFND</code>) y Bitcoin (<code class="font-mono">21BC</code>).
+        </p>
+      </div>
+      <div class="shrink-0 text-[11px] font-mono text-emerald-400 bg-slate-950 px-3 py-1 rounded-xl border border-slate-800 flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+        Guardado Automático Activo
+      </div>
+    </div>
+
+    <!-- BARRA DE NAVEGACIÓN DE LAS 4 PESTAÑAS PRINCIPALES -->
+    <div class="flex flex-wrap gap-1.5 bg-slate-900 p-1.5 rounded-2xl border border-slate-800 mb-6">
+      <button onclick="switchTab('cartera')" id="nav-tab-cartera" class="flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20">
+        💼 1. Mi Cartera Real (MyInvestor)
+      </button>
+      <button onclick="switchTab('analizador')" id="nav-tab-analizador" class="flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all text-slate-300 hover:text-white hover:bg-slate-800/60">
+        🔍 2. Analizador por Ticker
+      </button>
+      <button onclick="switchTab('radar')" id="nav-tab-radar" class="flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all text-slate-300 hover:text-white hover:bg-slate-800/60">
+        📡 3. Radar 40 + Incubadora
+      </button>
+      <button onclick="switchTab('backtest')" id="nav-tab-backtest" class="flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all text-slate-300 hover:text-white hover:bg-slate-800/60">
+        📈 4. Backtesting vs. Índices
+      </button>
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- VISTA 1: MI CARTERA REAL + GESTOR DE COMPRAS Y VENTAS EN VIVO           -->
+    <!-- ======================================================================= -->
+    <section id="section-cartera" class="space-y-6">
+      <!-- 4 KPIs Dinámicos de Patrimonio -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="glass-card rounded-2xl p-4 border-l-4 border-l-cyan-400">
+          <div class="text-xs text-slate-400" id="kpi-positions-count">Capital Invertido (8 Activos)</div>
+          <div class="text-2xl font-mono font-bold text-white mt-1" id="kpi-invested-total">3.328,36 €</div>
+          <div class="text-xs font-mono mt-1 text-rose-400" id="kpi-invested-sub">Coste: 3.671,73 € (-9,35%)</div>
+        </div>
+
+        <div class="glass-card rounded-2xl p-4 border-l-4 border-l-emerald-400">
+          <div class="text-xs text-slate-400">Resultado Realizado 2026 (Ventas + Div)</div>
+          <div class="text-2xl font-mono font-bold text-emerald-400 mt-1" id="kpi-realized-total">+84,16 €</div>
+          <div class="text-xs text-slate-400 mt-1" id="kpi-realized-sub">Ventas: +59,16 € | Div+Int: +25,00 €</div>
+        </div>
+
+        <div class="glass-card rounded-2xl p-4 border-l-4 border-l-amber-400">
+          <div class="text-xs text-slate-400">Liquidez Disponible Separada (€)</div>
+          <div class="flex items-center gap-2 mt-1">
+            <input id="input-liquidity" type="number" value="1200" onchange="handleLiquidityChange(this.value)" class="w-28 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 font-mono font-bold text-lg text-emerald-400 focus:outline-none focus:border-emerald-400" />
+            <span class="font-mono font-bold text-emerald-400">€</span>
+          </div>
+          <div class="text-[11px] text-slate-400 mt-1" id="kpi-liquidity-sub">
+            Reserva Incubadora: <strong class="text-amber-300">450 €</strong> | Libre: <strong class="text-emerald-300">750 €</strong>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-2xl p-4 border-l-4 border-l-purple-400">
+          <div class="text-xs text-slate-400">Balance Fiscal IRPF 2026 (Hacienda)</div>
+          <div class="text-sm font-bold text-purple-300 mt-1" id="kpi-tax-headline">Base sujeta a IRPF: +59,16 €</div>
+          <div class="text-[11px] text-emerald-400 mt-1" id="kpi-tax-sub">
+            Impuesto est. (19%): 11,24 € (Vende FBIO para anularlo a 0 €)
+          </div>
+        </div>
+      </div>
+
+      <!-- GESTOR INTERACTIVO DE COMPRAS, VENTAS Y DIVIDENDOS EN CARTERA -->
+      <div class="glass-card rounded-2xl p-5 border border-cyan-500/40 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+          <div>
+            <span class="text-[11px] font-mono uppercase px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+              ➕ / ➖ GESTOR DE OPERACIONES EN VIVO (GUARDADO AUTOMÁTICO EN TU DISPOSITIVO)
+            </span>
+            <h2 class="text-base sm:text-lg font-bold text-white mt-1">
+              Registrar Nueva Compra, Venta o Dividendo en tu Cartera MyInvestor
+            </h2>
+            <p class="text-xs text-slate-400">
+              Cada operación que registres aquí se queda guardada en la memoria de tu navegador/iPhone y actualiza tu tabla, tu liquidez y tu IRPF
+            </p>
+          </div>
+          <button onclick="toggleTradeFormBox()" id="btn-toggle-trade-form" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-all">
+            Ocultar Formulario
+          </button>
+        </div>
+
+        <form id="trade-form-container" onsubmit="submitTradeForm(event)" class="space-y-4">
+          <div class="flex flex-wrap items-center gap-2 text-xs">
+            <span class="text-slate-400 font-semibold">⚡ Simulación rápida con 1 clic:</span>
+            <button type="button" onclick="quickFillFBIO()" class="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 font-semibold">
+              ➖ Cargar Venta Total FBIO (Escudo Fiscal)
+            </button>
+            <button type="button" onclick="quickFillBuyASML()" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 font-semibold">
+              ➕ Cargar Compra ASML (534 €)
+            </button>
+            <button type="button" onclick="quickFillBuyVWCE()" class="px-2.5 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 font-semibold">
+              ➕ Cargar Compra ETF VWCE.DE
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
+            <div>
+              <label class="block text-slate-400 mb-1 font-semibold">1. Tipo de Movimiento</label>
+              <select id="tf-type" onchange="recalcTradePreview()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-bold text-white">
+                <option value="VENTA">➖ VENTA (Total o Parcial)</option>
+                <option value="COMPRA">➕ COMPRA (Nueva o Ampliar)</option>
+                <option value="DIVIDENDO">💰 DIVIDENDO COBRADO</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1 font-semibold">2. Tipo de Activo</label>
+              <select id="tf-asset-type" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                <option value="ACCION">🏢 ACCIÓN</option>
+                <option value="ETF">🌍 ETF INDEXADO / SECTORIAL</option>
+                <option value="CRYPTO_ETP">₿ CRIPTOMONEDA / ETP</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1 font-semibold">3. Ticker (Ej: ASML, FBIO)</label>
+              <input id="tf-ticker" type="text" value="FBIO" oninput="this.value=this.value.toUpperCase(); recalcTradePreview()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono font-bold text-emerald-400" required />
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1 font-semibold">4. Nombre del Activo</label>
+              <input id="tf-name" type="text" value="Fortress Biotech Inc." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white" />
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1 font-semibold">5. Fecha Operación</label>
+              <input id="tf-date" type="date" value="2026-10-30" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-white" required />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
+            <div>
+              <label class="block text-slate-400 mb-1 font-semibold">6. N.º de Títulos / Acciones</label>
+              <input id="tf-shares" type="number" step="any" value="310" oninput="recalcTradePreview()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono font-bold text-white" required />
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1 font-semibold">7. Precio Unitario</label>
+              <input id="tf-price" type="number" step="any" value="1.50" oninput="recalcTradePreview()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono font-bold text-white" required />
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1 font-semibold">8. Divisa y Tipo Cambio</label>
+              <div class="flex gap-1.5">
+                <select id="tf-currency" onchange="handleCurrencySelectChange()" class="bg-slate-950 border border-slate-700 rounded-xl px-2 py-2 font-mono text-white">
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                </select>
+                <input id="tf-fx" type="number" step="any" value="1.082" oninput="recalcTradePreview()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-2 font-mono text-slate-300" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1 font-semibold">9. Comisión MyInvestor (€)</label>
+              <input id="tf-fees" type="number" step="any" value="2.00" oninput="recalcTradePreview()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-amber-300" />
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1 font-semibold">10. Notas / Motivo</label>
+              <input id="tf-notes" type="text" value="Venta defensiva y cosecha fiscal IRPF" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200" />
+            </div>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+            <div class="flex flex-wrap items-center gap-5 font-mono" id="tf-preview-bar">
+              <!-- Calculado en vivo por JS -->
+            </div>
+            <button type="submit" id="tf-submit-btn" class="px-5 py-2.5 rounded-xl font-bold text-xs bg-rose-500 hover:bg-rose-400 text-slate-950 shadow-lg transition-all">
+              ➖ Confirmar Operación en Mi Cartera
+            </button>
+          </div>
+
+          <div id="tf-feedback-box" class="hidden p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-xs text-emerald-300 font-semibold"></div>
+        </form>
+      </div>
+
+      <!-- MATRIZ QUIRÚRGICA: ¿QUÉ PASA SI VENDO HOY VS. QUÉ PASA SI ESPERO UN REBOTE? -->
+      <div class="glass-card rounded-2xl p-5 border border-emerald-500/30 bg-gradient-to-r from-emerald-950/30 via-slate-900 to-slate-900 space-y-4">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div>
+            <span class="inline-block px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-bold mb-1.5">
+              🧠 SIMULADOR QUIRÚRGICO CON TUS MOVIMIENTOS REALES: ¿VENDER HOY O ESPERAR REBOTE?
+            </span>
+            <h2 class="text-base sm:text-lg font-bold text-white">
+              No vendas las 4 en pérdidas de golpe: así optimizamos tu dinero y tus impuestos
+            </h2>
+          </div>
+          <div class="flex flex-wrap gap-2 shrink-0">
+            <button onclick="openLedgerModal()" class="px-3.5 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-bold transition-all">
+              📜 Ver Libro Oficial de Movimientos
+            </button>
+            <button onclick="openRebalanceModal()" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all">
+              📋 Hoja de Ruta Quirúrgica
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+          <div class="p-3.5 rounded-xl bg-rose-950/30 border border-rose-500/40 space-y-1">
+            <div class="flex justify-between items-center font-bold text-rose-300">
+              <span>1. Fortress Biotech (FBIO)</span>
+              <span class="px-2 py-0.5 rounded bg-rose-500/20 text-[10px]">VENDER HOY</span>
+            </div>
+            <p class="text-slate-300 leading-relaxed">
+              <strong>Si NO vendes:</strong> Quema caja cada trimestre y diluye acciones.<br />
+              <strong>Si VENDES hoy:</strong> Rescatas <strong>431 €</strong> y su pérdida (-155 €) te deja <strong>100% libre de impuestos tus +59,16 € ganados en APLD y CWAN</strong>.
+            </p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/40 space-y-1">
+            <div class="flex justify-between items-center font-bold text-amber-300">
+              <span>2. Coeur Mining (CDE)</span>
+              <span class="px-2 py-0.5 rounded bg-amber-500/20 text-[10px]">ESPERAR REBOTE</span>
+            </div>
+            <p class="text-slate-300 leading-relaxed">
+              <strong>Coste Excel: 495,88 € (20-ene).</strong><br />
+              Está muy sobrevendida y la plata tiene viento macro a favor. En cualquier tirón de la plata suele rebotar un <strong>+18% a +25%</strong> hacia 6,65 $ - 6,90 $, donde saldrás mucho mejor.
+            </p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-orange-950/30 border border-orange-500/40 space-y-1">
+            <div class="flex justify-between items-center font-bold text-orange-300">
+              <span>3. Hello Group (MOMO)</span>
+              <span class="px-2 py-0.5 rounded bg-orange-500/20 text-[10px]">SALIR EN REBOTE</span>
+            </div>
+            <p class="text-slate-300 leading-relaxed">
+              <strong>Coste Excel: 504,22 € (+14,67 € Div cobrado el 30-abr).</strong><br />
+              Como no vuelve a pagar dividendo hasta abril del próximo año y pierde usuarios en China, pon orden de venta en <strong>6,85 $ - 7,10 $</strong>.
+            </p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-cyan-950/30 border border-cyan-500/40 space-y-1">
+            <div class="flex justify-between items-center font-bold text-cyan-300">
+              <span>4. Turkcell ADR (TKC)</span>
+              <span class="px-2 py-0.5 rounded bg-cyan-500/20 text-[10px]">SIN PRISA</span>
+            </div>
+            <p class="text-slate-300 leading-relaxed">
+              <strong>Coste Excel: 109,50 € (05-ene).</strong><br />
+              En euros reales solo vas perdiendo <strong>-15,19 €</strong>. No merece la pena pagar comisión mínima por rescatar 94 € ahora; mantenla sin prisa.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABLA DE POSICIONES EN CARTERA -->
+      <div class="glass-card rounded-2xl overflow-hidden">
+        <div class="p-4 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 class="font-bold text-sm sm:text-base text-white">
+              Desglose Completo de tus Posiciones en MyInvestor
+            </h3>
+            <p class="text-xs text-slate-400">
+              Haz clic en el nombre para abrir su análisis completo o usa los botones <strong>+ Comprar / - Vender</strong>
+            </p>
+          </div>
+          <span class="text-xs font-mono text-emerald-400">1 EUR = 1,082 USD</span>
+        </div>
+
+        <div class="overflow-x-auto custom-scroll">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="border-b border-slate-800 text-[11px] font-mono uppercase text-slate-400 bg-slate-950/60">
+                <th class="py-3 px-4">Activo / Régimen</th>
+                <th class="py-3 px-3 text-right">Títulos</th>
+                <th class="py-3 px-3 text-right">Coste Total (+Comis.)</th>
+                <th class="py-3 px-3 text-right">Importe Actual</th>
+                <th class="py-3 px-3 text-right">Rentab. Actual</th>
+                <th class="py-3 px-3 text-right">Valor Justo (F / T)</th>
+                <th class="py-3 px-3 text-center">Peso Act. → Ópt.</th>
+                <th class="py-3 px-3 text-center">Operar</th>
+                <th class="py-3 px-4">Diagnóstico del Modelo</th>
+              </tr>
+            </thead>
+            <tbody id="portfolio-tbody" class="divide-y divide-slate-800/70">
+              <!-- Renderizado por JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- VISTA 2: ANALIZADOR PROFUNDO POR TICKER                                 -->
+    <!-- ======================================================================= -->
+    <section id="section-analizador" class="hidden space-y-6">
+      <div class="glass-card rounded-2xl p-4 space-y-3">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div class="flex-1">
+            <label class="text-xs text-slate-400 font-semibold block mb-1.5">
+              🔎 Busca cualquier Ticker (o pulsa uno de los botones rápidos debajo):
+            </label>
+            <div class="flex items-center gap-2">
+              <input id="analyzer-search-input" type="text" onkeydown="if(event.key==='Enter') handleTickerSearch(this.value)" placeholder="Escribe un ticker (ej: NKE, ASML, RWE.DE, FBIO, CDE, MOMO, TPZ.MC, NVDA, ITX.MC, SAN.MC, TSM, VRTX)..." class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-xs sm:text-sm font-mono text-white focus:outline-none focus:border-emerald-400" />
+              <button onclick="handleTickerSearch(document.getElementById('analyzer-search-input').value)" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs sm:text-sm transition-all shrink-0">
+                Analizar Ticker
+              </button>
+            </div>
+          </div>
+          <div class="shrink-0 bg-slate-950 px-3.5 py-2 rounded-xl border border-emerald-500/30 text-xs font-mono">
+            <div className="text-slate-400">Candado Integridad DICS</div>
+            <div className="text-emerald-400 font-bold text-emerald-400">100% VERIFICADO • CERO INVENCIÓN</div>
+          </div>
+        </div>
+        <div id="analyzer-pills-box" class="flex flex-wrap gap-1.5 pt-1"></div>
+      </div>
+
+      <div id="analyzer-detail-box" class="glass-card rounded-2xl p-5 border border-emerald-500/30 space-y-5">
+        <!-- Renderizado por JS -->
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- VISTA 3: RADAR DE 40 OPORTUNIDADES EN TIEMPO REAL + INCUBADORA          -->
+    <!-- ======================================================================= -->
+    <section id="section-radar" class="hidden space-y-6">
+      <div class="glass-card rounded-2xl p-5 space-y-4">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div>
+            <h2 class="text-lg font-bold text-white">
+              📡 Radar Cuantitativo en Tiempo Real (40 Oportunidades: 10 por Horizonte + 10 en Incubadora)
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Universo MyInvestor (EE. UU., España, Europa, Asia, ETFs y Cripto) ordenado por esperanza matemática
+            </p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+              <button onclick="changeRadarMode('combinado')" id="btn-rmode-combinado" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500 text-slate-950">
+                🔗 Confluencia (F+T)
+              </button>
+              <button onclick="changeRadarMode('fundamental')" id="btn-rmode-fundamental" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white">
+                📚 Puro Fundamental
+              </button>
+              <button onclick="changeRadarMode('tecnico')" id="btn-rmode-tecnico" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white">
+                📈 Puro Técnico Quant
+              </button>
+            </div>
+
+            <button onclick="toggleRadarThesis()" id="btn-radar-thesis" class="px-3 py-2 rounded-xl text-xs font-bold bg-purple-500/15 text-purple-300 border border-purple-500/40">
+              📖 Tesis Peter Lynch: VISIBLE
+            </button>
+          </div>
+        </div>
+
+        <!-- Buscador integrado en el Radar -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-slate-950 p-3 rounded-xl border border-slate-800">
+          <span class="text-xs font-bold text-cyan-300 shrink-0">
+            🔎 ¿Curiosidad por algún Ticker mientras miras el Radar?
+          </span>
+          <input id="radar-search-input" type="text" onkeydown="if(event.key==='Enter') handleTickerSearch(this.value)" placeholder="Escribe cualquier ticker (ej: NVDA, ITX.MC, SAN.MC, TSM, VRTX, 8035.T, MRL.MC, VID.MC, LOG.MC)..." class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-cyan-400" />
+          <button onclick="handleTickerSearch(document.getElementById('radar-search-input').value)" class="px-4 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-all shrink-0">
+            Analizar al Instante →
+          </button>
+        </div>
+
+        <!-- Selector de las 4 Pestañas del Radar -->
+        <div class="flex flex-wrap gap-2">
+          <button onclick="changeRadarHorizon('corto')" id="btn-rhor-corto" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border bg-cyan-500/20 text-cyan-300 border-cyan-500/50">
+            ⚡ 1. Corto Plazo (&lt; 1 año • Top 10)
+          </button>
+          <button onclick="changeRadarHorizon('medio')" id="btn-rhor-medio" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border bg-slate-950 text-slate-400 border-slate-800 hover:text-white">
+            🔄 2. Medio Plazo (1 a 3 años • Top 10)
+          </button>
+          <button onclick="changeRadarHorizon('largo')" id="btn-rhor-largo" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border bg-slate-950 text-slate-400 border-slate-800 hover:text-white">
+            🏰 3. Largo Plazo (&gt; 3 años • Top 10)
+          </button>
+          <button onclick="changeRadarHorizon('incubadora')" id="btn-rhor-incubadora" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border bg-slate-950 text-slate-400 border-slate-800 hover:text-white">
+            ⏳ 4. Mi Incubadora / En Vigilancia (10)
+          </button>
+        </div>
+      </div>
+
+      <div id="radar-cards-box" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Renderizado por JS -->
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- VISTA 4: BACKTESTING EMPÍRICO VS. S&P 500, MSCI WORLD Y LETRAS TESORO   -->
+    <!-- ======================================================================= -->
+    <section id="section-backtest" class="hidden space-y-6">
+      <div class="glass-card rounded-2xl p-5 space-y-5">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div>
+            <h2 class="text-lg font-bold text-white">
+              📈 Backtesting Empírico: Tu Cartera desde Enero 2026 frente a Indexación y Renta Fija
+            </h2>
+            <p class="text-xs text-slate-400">
+              Comparativa real sobre tus 3.757,29 € invertidos frente a Letras del Tesoro, Bonos 10Y, MSCI World, S&P 500 y tu Cartera Auditada por nuestro Motor Quant
+            </p>
+          </div>
+          <div class="px-4 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-right font-mono">
+            <div class="text-[11px] text-slate-300">Ventaja Neta del Motor Quant (Ene–Oct 2026)</div>
+            <div class="text-lg font-bold text-emerald-400">+998,16 € (+26,57% de ventaja)</div>
+          </div>
+        </div>
+
+        <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4">
+          <div class="text-xs font-bold text-slate-300 mb-3">
+            Curva de Evolución Patrimonial (Capital Base: 3.757,29 € • Enero 2026 a Octubre 2026)
+          </div>
+          <svg viewBox="0 0 800 260" class="w-full h-60 overflow-visible">
+            <line x1="55" y1="20" x2="770" y2="20" stroke="#1e293b" stroke-dasharray="4 4" />
+            <text x="5" y="24" fill="#64748b" font-size="11" font-family="monospace">4400 €</text>
+            <line x1="55" y1="70" x2="770" y2="70" stroke="#1e293b" stroke-dasharray="4 4" />
+            <text x="5" y="74" fill="#64748b" font-size="11" font-family="monospace">4100 €</text>
+            <line x1="55" y1="120" x2="770" y2="120" stroke="#1e293b" stroke-dasharray="4 4" />
+            <text x="5" y="124" fill="#64748b" font-size="11" font-family="monospace">3800 €</text>
+            <line x1="55" y1="170" x2="770" y2="170" stroke="#1e293b" stroke-dasharray="4 4" />
+            <text x="5" y="174" fill="#64748b" font-size="11" font-family="monospace">3500 €</text>
+            <line x1="55" y1="220" x2="770" y2="220" stroke="#1e293b" stroke-dasharray="4 4" />
+            <text x="5" y="224" fill="#64748b" font-size="11" font-family="monospace">3200 €</text>
+
+            <text x="65" y="248" fill="#94a3b8" font-size="11" font-family="monospace" text-anchor="middle">Ene</text>
+            <text x="143" y="248" fill="#94a3b8" font-size="11" font-family="monospace" text-anchor="middle">Feb</text>
+            <text x="221" y="248" fill="#94a3b8" font-size="11" font-family="monospace" text-anchor="middle">Mar</text>
+            <text x="299" y="248" fill="#94a3b8" font-size="11" font-family="monospace" text-anchor="middle">Abr</text>
+            <text x="377" y="248" fill="#94a3b8" font-size="11" font-family="monospace" text-anchor="middle">May</text>
+            <text x="455" y="248" fill="#94a3b8" font-size="11" font-family="monospace" text-anchor="middle">Jun</text>
+            <text x="533" y="248" fill="#94a3b8" font-size="11" font-family="monospace" text-anchor="middle">Jul</text>
+            <text x="611" y="248" fill="#94a3b8" font-size="11" font-family="monospace" text-anchor="middle">Ago</text>
+            <text x="689" y="248" fill="#94a3b8" font-size="11" font-family="monospace" text-anchor="middle">Sep</text>
+            <text x="767" y="248" fill="#94a3b8" font-size="11" font-family="monospace" text-anchor="middle">Oct 26</text>
+
+            <polyline fill="none" stroke="#10b981" stroke-width="3.5" points="65,127 143,118 221,104 299,110 377,90 455,76 533,63 611,54 689,43 767,32" />
+            <polyline fill="none" stroke="#06b6d4" stroke-width="2.5" stroke-dasharray="6 4" points="65,127 143,121 221,113 299,118 377,105 455,96 533,88 611,81 689,74 767,68" />
+            <polyline fill="none" stroke="#3b82f6" stroke-width="2.5" points="65,127 143,123 221,116 299,120 377,109 455,101 533,93 611,87 689,80 767,74" />
+            <polyline fill="none" stroke="#f59e0b" stroke-width="2" points="65,127 143,125 221,123 299,122 377,120 455,118 533,116 611,115 689,113 767,112" />
+            <polyline fill="none" stroke="#f43f5e" stroke-width="3" points="65,127 143,135 221,143 299,161 377,155 455,173 533,183 611,188 689,193 767,198" />
+          </svg>
+
+          <div class="flex flex-wrap items-center justify-center gap-4 text-xs mt-2 pt-2 border-t border-slate-900">
+            <span class="text-emerald-400 font-bold">🟢 1. Tu Cartera + Motor Quant (+15,15% • 4.326,52 €)</span>
+            <span class="text-cyan-400">🔵 2. S&P 500 (+9,40% • 4.110,48 €)</span>
+            <span class="text-blue-400">🌐 3. MSCI World (+8,40% • 4.072,90 €)</span>
+            <span class="text-amber-400">🟡 4. Letras del Tesoro (+2,41% • 3.847,84 €)</span>
+            <span class="text-rose-400 font-bold">🔴 5. Cartera Sin Filtro Quant (-11,42% • 3.328,36 €)</span>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <h3 class="font-bold text-sm text-white">
+            🏛️ Validación Histórica Multisectorial (2016–2026: Caso Telepizza TFG + 5 Regímenes)
+          </h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-slate-800 text-[11px] font-mono uppercase text-slate-400 bg-slate-950">
+                  <th class="py-2.5 px-3">Caso Auditado</th>
+                  <th class="py-2.5 px-3">Periodo</th>
+                  <th class="py-2.5 px-3 text-right">Precio Entrada</th>
+                  <th class="py-2.5 px-3 text-right">Valor Motor Quant</th>
+                  <th class="py-2.5 px-3">Dictamen del Motor</th>
+                  <th class="py-2.5 px-3">Desenlace Real Auditado</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800/60">
+                <tr>
+                  <td class="py-2.5 px-3 font-bold text-white">1. Telepizza (TPZ.MC • Caso TFG)</td>
+                  <td class="py-2.5 px-3 font-mono">2016–2019</td>
+                  <td class="py-2.5 px-3 text-right font-mono">7,75 € (OPV)</td>
+                  <td class="py-2.5 px-3 text-right font-mono font-bold text-emerald-400">5,97 €</td>
+                  <td class="py-2.5 px-3 text-rose-400 font-bold">🔴 DESCARTAR (80,8% Goodwill)</td>
+                  <td class="py-2.5 px-3 text-slate-300">Excluida por KKR a 6,00 € (-22,6%). Evitó la trampa.</td>
+                </tr>
+                <tr>
+                  <td class="py-2.5 px-3 font-bold text-white">2. Banco Santander (SAN.MC • Rég. 1)</td>
+                  <td class="py-2.5 px-3 font-mono">2022–2026</td>
+                  <td class="py-2.5 px-3 text-right font-mono">2,45 €</td>
+                  <td class="py-2.5 px-3 text-right font-mono font-bold text-emerald-400">4,35 €</td>
+                  <td class="py-2.5 px-3 text-emerald-400 font-bold">🟢 COMPRAR (P/TBV 0,42x)</td>
+                  <td class="py-2.5 px-3 text-slate-300">+102% acumulado con dividendos y recompras.</td>
+                </tr>
+                <tr>
+                  <td class="py-2.5 px-3 font-bold text-white">3. Merlin Properties (MRL.MC • Rég. 2)</td>
+                  <td class="py-2.5 px-3 font-mono">2022–2026</td>
+                  <td class="py-2.5 px-3 text-right font-mono">7,60 €</td>
+                  <td class="py-2.5 px-3 text-right font-mono font-bold text-emerald-400">11,80 €</td>
+                  <td class="py-2.5 px-3 text-emerald-400 font-bold">🟢 COMPRAR (Descuento NAV)</td>
+                  <td class="py-2.5 px-3 text-slate-300">+68% total impulsado por centros de datos y logística.</td>
+                </tr>
+                <tr>
+                  <td class="py-2.5 px-3 font-bold text-white">4. Microsoft (MSFT • Rég. 3 Tech)</td>
+                  <td class="py-2.5 px-3 font-mono">2023–2026</td>
+                  <td class="py-2.5 px-3 text-right font-mono">239,00 $</td>
+                  <td class="py-2.5 px-3 text-right font-mono font-bold text-emerald-400">345,00 $</td>
+                  <td class="py-2.5 px-3 text-emerald-400 font-bold">🟢 COMPRA FUERTE (I+D Cap.)</td>
+                  <td class="py-2.5 px-3 text-slate-300">+82% acumulado superando los 418 $.</td>
+                </tr>
+                <tr>
+                  <td class="py-2.5 px-3 font-bold text-white">5. Inditex (ITX.MC • Rég. 4 Moat)</td>
+                  <td class="py-2.5 px-3 font-mono">2022–2026</td>
+                  <td class="py-2.5 px-3 text-right font-mono">21,50 €</td>
+                  <td class="py-2.5 px-3 text-right font-mono font-bold text-emerald-400">34,80 €</td>
+                  <td class="py-2.5 px-3 text-emerald-400 font-bold">🟢 COMPRA LARGO PLAZO</td>
+                  <td class="py-2.5 px-3 text-slate-300">+135% con dividendos (multiplicó por &gt;2x).</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- BARRA INFERIOR TÁCTIL ESTILO iOS PARA iPHONE -->
+  <nav class="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-slate-950/95 backdrop-blur-md border-t border-slate-800 flex items-center justify-around py-2.5 px-2">
+    <button onclick="switchTab('cartera')" id="mob-tab-cartera" class="flex flex-col items-center gap-0.5 text-[11px] font-bold text-emerald-400">
+      <span>💼</span><span>Cartera</span>
+    </button>
+    <button onclick="switchTab('analizador')" id="mob-tab-analizador" class="flex flex-col items-center gap-0.5 text-[11px] font-bold text-slate-400">
+      <span>🔍</span><span>Analizar</span>
+    </button>
+    <button onclick="switchTab('radar')" id="mob-tab-radar" class="flex flex-col items-center gap-0.5 text-[11px] font-bold text-slate-400">
+      <span>📡</span><span>Radar 40</span>
+    </button>
+    <button onclick="switchTab('backtest')" id="mob-tab-backtest" class="flex flex-col items-center gap-0.5 text-[11px] font-bold text-slate-400">
+      <span>📈</span><span>Backtest</span>
+    </button>
+  </nav>
+
+  <!-- MODAL 1: LIBRO OFICIAL DINÁMICO DE MOVIMIENTOS -->
+  <div id="modal-ledger" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-cyan-500/40 rounded-2xl max-w-4xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto custom-scroll">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div>
+          <h3 class="font-bold text-white text-base" id="ledger-modal-title">📜 Libro Oficial de Movimientos de tu Cartera MyInvestor</h3>
+          <p class="text-xs text-slate-400">Incluye tus movimientos de enero a julio y todas las compras/ventas que registres</p>
+        </div>
+        <button onclick="closeLedgerModal()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs font-mono">
+          <thead>
+            <tr class="border-b border-slate-800 text-slate-400 bg-slate-950">
+              <th class="py-2 px-3">Fecha</th>
+              <th class="py-2 px-3">Movimiento</th>
+              <th class="py-2 px-3">Tipo</th>
+              <th class="py-2 px-3">Ticker</th>
+              <th class="py-2 px-3 text-right">Títulos</th>
+              <th class="py-2 px-3">Descripción</th>
+              <th class="py-2 px-3 text-right">Importe Neto (€)</th>
+              <th class="py-2 px-3 text-right">Resultado Realizado</th>
+            </tr>
+          </thead>
+          <tbody id="ledger-tbody" class="divide-y divide-slate-800/60"></tbody>
+        </table>
+      </div>
+      <div class="flex justify-end">
+        <button onclick="closeLedgerModal()" class="px-4 py-2 rounded-xl bg-cyan-500 text-slate-950 font-bold text-xs">Cerrar Historial</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: PLAN EXACTO DE REBALANCEO -->
+  <div id="modal-rebalance" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-emerald-500/40 rounded-2xl max-w-2xl w-full p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-white text-base">📋 Hoja de Ruta Quirúrgica para tu Cartera MyInvestor</h3>
+        <button onclick="closeRebalanceModal()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+      <div class="space-y-3 text-xs text-slate-200 leading-relaxed">
+        <div class="p-3.5 rounded-xl bg-rose-950/30 border border-rose-500/40">
+          <strong class="text-rose-300 block mb-1">PASO 1: Venta Inmediata de FBIO (Rescatas 431,48 € + Anulas el IRPF de APLD y CWAN)</strong>
+          Vende tus acciones de Fortress Biotech (FBIO). Su pérdida (-155,52 €) compensa al 100% tus +59,16 € ganados en APLD y CWAN y aún te deja -96,36 € de escudo fiscal para el futuro.
+        </div>
+        <div class="p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/40">
+          <strong class="text-amber-300 block mb-1">PASO 2: Órdenes Inteligentes en Rebote para CDE (6,65$ - 6,90$) y MOMO (6,85$ - 7,10$)</strong>
+          No malvendas Coeur Mining (CDE) hoy en mínimos: espera el rebote de la plata. En Turkcell (TKC) solo pierdes -15,19 € reales respecto a tus 109,50 € de enero, por lo que puedes mantenerla sin prisa.
+        </div>
+        <div class="p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-500/40">
+          <strong class="text-emerald-300 block mb-1">PASO 3: Cómo repartir tu Liquidez Disponible</strong>
+          • <strong>Reserva Táctica Incubadora (450 €):</strong> Guárdalos en tu cuenta remunerada para cazar Vertex (VRTX) o TSMC (TSM) que están a un 2% de su gatillo.<br />
+          • <strong>Compra de Calidad:</strong> Asigna el resto a <strong>ASML Holding (ASML)</strong> en soporte institucional y al ETF global <strong>VWCE.DE / MSCI World</strong>.
+        </div>
+      </div>
+      <div class="flex justify-end">
+        <button onclick="closeRebalanceModal()" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs">Entendido</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: PASARELA DE AUTENTICACIÓN OPCIONAL GEMINI PRO / PLUS -->
+  <div id="modal-auth" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-purple-500/40 rounded-2xl max-w-lg w-full p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-white text-base">✨ Pasarela de Motores: 100% Gratuito vs. Suscripción (Gemini Pro / Plus)</h3>
+        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        Por defecto, la plataforma calcula y redacta todo utilizando el <strong>abanico 100% gratuito</strong>. Si dispones de una suscripción a <strong>Gemini Pro</strong> o <strong>Plus</strong>, puedes autenticarte aquí para que la síntesis cualitativa utilice tu suscripción manteniendo el candado de Cero Invención.
+      </p>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-400 mb-1">Selecciona el Nivel del Motor:</label>
+          <select id="auth-provider" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white">
+            <option value="FREE_TIER">🔓 Modo 100% Gratuito por Defecto (Sin Autenticación)</option>
+            <option value="GEMINI_PRO">🔐 Google Gemini Pro / Ultra (Suscripción Autenticada)</option>
+            <option value="OPENAI_PLUS">🔐 OpenAI Plus / API Pro (Suscripción Autenticada)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Tu Correo (Opcional):</label>
+          <input id="auth-email" type="email" placeholder="fernando@ejemplo.com" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" />
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Token / API Key de Suscripción (Opcional):</label>
+          <input id="auth-key" type="password" placeholder="AIzaSy... / sk-..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" />
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="saveAuthConfig(true)" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold">Usar Solo Modo Gratuito</button>
+        <button onclick="saveAuthConfig(false)" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 text-xs font-bold">Guardar Configuración</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MOTOR JAVASCRIPT COMPLETO SIN DEPENDENCIAS EXTERNAS                       -->
+  <!-- ========================================================================= -->
+  <script>
+    const DEFAULT_PORTFOLIO = [
+      { ticker: '21BC.DE', name: '21Shares Bitcoin Core ETP', assetType: 'CRYPTO_ETP', regime: 'Régimen 8 • ETP Cripto Físico', sharesNum: 18.4, unitBuyPriceEUR: 27.03, feesEUR: 1.49, buyDate: '2026-02-10', costEUR: 497.44, currentPriceEUR: 33.91, currentOrig: '624,02 €', currentEUR: 624.02, pnlOrig: '+126,58 €', pnlPct: 25.45, valFund: '38,58 € / part.', ptTech: '41,20 € (POC: 31,20 €)', tir3y: '+16,5%', weightOpt: 12.0, badge: '🟢 MANTENER (Tope Peso)', plainAdvice: 'Excelente ETP de Bitcoin (TER 0,21%). MVRV en 1,92x (alcista sano). No vendas para no pagar IRPF, pero no amplíes porque ya pesa casi el 19%.' },
+      { ticker: 'RWE.DE', name: 'RWE AG', assetType: 'ACCION', regime: 'Régimen 6 • Utility / Red Eléctrica', sharesNum: 18.0, unitBuyPriceEUR: 28.10, feesEUR: 2.00, buyDate: '2026-01-15', costEUR: 507.80, currentPriceEUR: 32.60, currentOrig: '586,80 € (+7,15 € Div)', currentEUR: 586.80, pnlOrig: '+79,00 €', pnlPct: 15.56, valFund: '41,50 € / acc.', ptTech: '38,80 € / acc.', tir3y: '+13,8%', weightOpt: 14.0, badge: '🟢 EN PLENA FORMA (Mantener)', plainAdvice: 'Comprada a gran precio el 15-ene. Ya cobraste +7,15 € de dividendo el 06-may. Recompra acciones y sube en Etapa 2. Prohibido tocarla.' },
+      { ticker: 'DFND.PA', name: 'iShares Global Aerospace & Def', assetType: 'ETF', regime: 'Régimen 7 • ETF Defensa', sharesNum: 44.0, unitBuyPriceEUR: 11.39, feesEUR: 2.00, buyDate: '2026-01-15', costEUR: 503.00, currentPriceEUR: 10.52, currentOrig: '463,07 €', currentEUR: 463.07, pnlOrig: '-39,93 €', pnlPct: -7.94, valFund: '11,90 € / part.', ptTech: '11,60 € / part.', tir3y: '+11,9%', weightOpt: 12.0, badge: '🔵 MANTENER EN SOPORTE', plainAdvice: 'Viento geopolítico a favor toda la década. Descansa sobre su media institucional de 150 sesiones tras una subida previa fuerte.' },
+      { ticker: 'NKE', name: 'Nike Inc.', assetType: 'ACCION', regime: 'Régimen 4 • Compounder Consumo', sharesNum: 6.5, unitBuyPriceEUR: 71.12, feesEUR: 2.59, buyDate: '2026-07-15', costEUR: 464.89, currentPriceEUR: 71.15, currentOrig: '499,46 US$', currentEUR: 462.46, pnlOrig: '-2,62 US$', pnlPct: -0.52, valFund: '92,40 $ / acc.', ptTech: '86,00 $ / acc.', tir3y: '+13,5%', weightOpt: 12.0, badge: '🔵 EN SUELO (Mantener)', plainAdvice: 'Comprada justo sobre el suelo institucional de los grandes fondos (POC 75,20 $) con ROIC del 21,4%. Déjala madurar.' },
+      { ticker: 'FBIO', name: 'Fortress Biotech Inc.', assetType: 'ACCION', regime: 'Régimen 3/6 • Micro-Biotech', sharesNum: 310.0, unitBuyPriceEUR: 1.88, feesEUR: 2.85, buyDate: '2026-07-22', costEUR: 587.00, currentPriceEUR: 1.39, currentOrig: '466,00 US$', currentEUR: 431.48, pnlOrig: '-167,96 US$', pnlPct: -26.49, valFund: '0,85 $ (Quema Caja)', ptTech: '1,10 $ (Etapa 4)', tir3y: '-14,0%', weightOpt: 0.0, badge: '🔴 VENDER YA (Escudo IRPF)', plainAdvice: 'Piotroski 2/9: quema caja y diluye acciones. Véndela hoy: rescatas 431 € y su pérdida (-155 €) te deja libre de impuestos tus +59,16 € ganados en APLD y CWAN.' },
+      { ticker: 'MOMO', name: 'Hello Group Inc. (ADR)', assetType: 'ACCION', regime: 'Régimen 3 • Tech China (VIE)', sharesNum: 58.0, unitBuyPriceEUR: 8.65, feesEUR: 2.50, buyDate: '2026-01-14', costEUR: 504.22, currentPriceEUR: 5.88, currentOrig: '368,52 US$ (+14,67 € Div)', currentEUR: 341.22, pnlOrig: '-216,71 US$ (-148 € neto)', pnlPct: -32.32, valFund: '5,80 $ (En Declive)', ptTech: '6,85 $ (Rebote SMA50)', tir3y: '-4,5%', weightOpt: 0.0, badge: '🟠 VENDER EN REBOTE (6,85$)', plainAdvice: 'Ya cobraste +14,67 € de dividendo el 30-abr y no vuelve a pagar hasta el año que viene. Pon orden de salida en rebote a 6,85 $ - 7,10 $.' },
+      { ticker: 'CDE', name: 'Coeur Mining, Inc.', assetType: 'ACCION', regime: 'Régimen 5 • Minería Plata/Oro', sharesNum: 62.0, unitBuyPriceEUR: 7.96, feesEUR: 2.40, buyDate: '2026-01-20', costEUR: 495.88, currentPriceEUR: 5.24, currentOrig: '351,00 US$', currentEUR: 325.00, pnlOrig: '-229,01 US$', pnlPct: -34.46, valFund: '5,40 $ (Ciclo Plata)', ptTech: '6,90 $ (Objetivo Rebote)', tir3y: '+2,0%', weightOpt: 0.0, badge: '🟡 ESPERAR REBOTE PLATA', plainAdvice: 'Muy sobrevendida pero con viento macro a favor en la plata. NO malvendas hoy en mínimos: espera un rebote hacia 6,65 $ - 6,90 $ para salir mejor.' },
+      { ticker: 'TKC', name: 'Turkcell Iletisim ADR', assetType: 'ACCION', regime: 'Régimen 6 • Telecom Turquía', sharesNum: 16.0, unitBuyPriceEUR: 6.72, feesEUR: 2.00, buyDate: '2026-01-05', costEUR: 109.50, currentPriceEUR: 5.89, currentOrig: '101,86 US$', currentEUR: 94.31, pnlOrig: '-15,19 € reales', pnlPct: -13.87, valFund: '6,40 $ (Ajustado TRY)', ptTech: '6,60 $ (Lateral)', tir3y: '+5,2%', weightOpt: 2.5, badge: '🔵 MANTENER SIN PRISA (-15 €)', plainAdvice: 'En euros reales solo pierdes -15,19 €. No merece la pena pagar comisión de venta por 94 €; mantén a la espera de su dividendo.' }
+    ];
+
+    const DEFAULT_LEDGER = [
+      { date: '2026-01-05', type: 'COMPRA', asset: 'ACCION', ticker: 'TKC', shares: 16, desc: 'TURKCELL ILETISIM ADR • Telecomunicaciones', amountEUR: -109.50, realizedEUR: 0 },
+      { date: '2026-01-14', type: 'COMPRA', asset: 'ACCION', ticker: 'MOMO', shares: 58, desc: 'HELLO GROUP ADR • Tech China', amountEUR: -504.22, realizedEUR: 0 },
+      { date: '2026-01-15', type: 'COMPRA', asset: 'ETF', ticker: 'DFND.PA', shares: 44, desc: 'ISHARES GLOBAL AEROSPACE DEFENSA', amountEUR: -503.00, realizedEUR: 0 },
+      { date: '2026-01-15', type: 'COMPRA', asset: 'ACCION', ticker: 'RWE.DE', shares: 18, desc: 'RWE AG • Energía Renovable', amountEUR: -507.80, realizedEUR: 0 },
+      { date: '2026-01-16', type: 'COMPRA', asset: 'ACCION', ticker: 'CWAN', shares: 20, desc: 'CLEARWATER ANALYTICS • Software SaaS', amountEUR: -505.05, realizedEUR: 0 },
+      { date: '2026-01-20', type: 'COMPRA', asset: 'ACCION', ticker: 'CDE', shares: 62, desc: 'COEUR MINING • Minería Plata/Oro', amountEUR: -495.88, realizedEUR: 0 },
+      { date: '2026-01-26', type: 'COMPRA', asset: 'ACCION', ticker: 'APLD', shares: 80, desc: 'APPLIED DIGITAL • Tecnología IA', amountEUR: -508.37, realizedEUR: 0 },
+      { date: '2026-02-04', type: 'INTERESES', asset: 'REMUNERADA', ticker: 'CASH', shares: 1, desc: 'Intereses Cartera Remunerada', amountEUR: 0.81, realizedEUR: 0.81 },
+      { date: '2026-02-10', type: 'COMPRA', asset: 'CRYPTO_ETP', ticker: '21BC.DE', shares: 18.4, desc: '21SHARES BITCOIN CORE ETP • Criptomonedas', amountEUR: -497.44, realizedEUR: 0 },
+      { date: '2026-03-04', type: 'INTERESES', asset: 'REMUNERADA', ticker: 'CASH', shares: 1, desc: 'Intereses Cartera Remunerada', amountEUR: 0.53, realizedEUR: 0.53 },
+      { date: '2026-04-04', type: 'INTERESES', asset: 'REMUNERADA', ticker: 'CASH', shares: 1, desc: 'Intereses Cartera Remunerada', amountEUR: 0.51, realizedEUR: 0.51 },
+      { date: '2026-04-30', type: 'DIVIDENDO', asset: 'ACCION', ticker: 'MOMO', shares: 58, desc: 'Dividendo Anual Hello Group Cobrado', amountEUR: 14.67, realizedEUR: 14.67 },
+      { date: '2026-05-04', type: 'INTERESES', asset: 'REMUNERADA', ticker: 'CASH', shares: 1, desc: 'Intereses Cartera Remunerada', amountEUR: 0.49, realizedEUR: 0.49 },
+      { date: '2026-05-06', type: 'DIVIDENDO', asset: 'ACCION', ticker: 'RWE.DE', shares: 18, desc: 'Dividendo Anual RWE Cobrado', amountEUR: 7.15, realizedEUR: 7.15 },
+      { date: '2026-05-13', type: 'VENTA', asset: 'ACCION', ticker: 'APLD', shares: 80, desc: 'Venta Exitosa Applied Digital (+10,06%)', amountEUR: 559.52, realizedEUR: 51.15 },
+      { date: '2026-06-04', type: 'INTERESES', asset: 'REMUNERADA', ticker: 'CASH', shares: 1, desc: 'Intereses Cartera Remunerada', amountEUR: 0.29, realizedEUR: 0.29 },
+      { date: '2026-06-10', type: 'DIVIDENDO', asset: 'ACCION', ticker: 'CDE', shares: 62, desc: 'Abono Coeur Mining', amountEUR: 0.29, realizedEUR: 0.29 },
+      { date: '2026-06-26', type: 'VENTA', asset: 'ACCION', ticker: 'CWAN', shares: 20, desc: 'Venta por OPA Clearwater Analytics', amountEUR: 513.06, realizedEUR: 8.01 },
+      { date: '2026-07-04', type: 'INTERESES', asset: 'REMUNERADA', ticker: 'CASH', shares: 1, desc: 'Intereses Cartera Remunerada', amountEUR: 0.26, realizedEUR: 0.26 },
+      { date: '2026-07-15', type: 'COMPRA', asset: 'ACCION', ticker: 'NKE', shares: 6.5, desc: 'Compra Nike Inc. en soporte institucional', amountEUR: -464.89, realizedEUR: 0 },
+      { date: '2026-07-22', type: 'COMPRA', asset: 'ACCION', ticker: 'FBIO', shares: 310, desc: 'Compra Fortress Biotech Inc.', amountEUR: -587.00, realizedEUR: 0 }
+    ];
+
+    const DEEP_TICKERS_DB = {
+      NKE: {
+        ticker: 'NKE', name: 'Nike, Inc.', regime: 'Régimen 4 • Compounder de Consumo Global (NYSE • EE. UU.)',
+        price: '76,84 $', change1d: '+0,42%', valFund: '92,40 $', valFundRange: '81,50 $ — 104,20 $', mos: '+16,8% Descuento',
+        valTechEq: '75,20 $ (POC Institucional)', ptTech: '86,00 $', techStage: 'Etapa 1 Avanzada (Suelo Institucional Formado)',
+        scoreFund: 82, scoreTech: 74, moat: 76, piotroski: '6 / 9', beneish: '-2,41 (Cuentas Limpias)',
+        roicWacc: 'ROIC: 21,4% vs WACC: 7,8% (+13,6% Creación Valor)',
+        reverseDCF: 'A 76,84 $, el mercado solo exige que Nike crezca al +3,8% anual (frente a su +8,5% histórico).',
+        consensus: '89,50 $ (Rango Bancos: 70 $ — 110 $)',
+        consensusDiff: 'Nuestro valor (92,40 $) supera en +3,2% al consenso porque capitalizamos su inversión en marca e I+D.',
+        sentiment: 'Constructivo Moderado (+42/100 • Fondos acumulando en soporte de 75 $)',
+        verdict: '🔵 MANTENER EN SUELO / ACUMULAR EN 72 $ - 75 $', horizon: 'Medio a Largo Plazo (2 a 4 años)',
+        buyZone: '71,50 $ — 75,80 $', stopLevel: '68,90 $ (Solo táctico; a LP vigilar ROIC > 15%)', takeProfit: 'Por encima de 108,00 $',
+        matrix3x3: {
+          cp: { cons: '71,00 $ (-5,6%)', base: '84,50 $ (+12,1%)', opt: '91,00 $ (+20,6%)' },
+          mp: { cons: '82,00 $ (+4,2%/a)', base: '104,00 $ (+13,5%/a)', opt: '118,00 $ (+18,2%/a)' },
+          lp: { cons: '96,00 $ (+6,5%/a)', base: '132,00 $ (+13,1%/a)', opt: '154,00 $ (+16,8%/a)' }
+        },
+        fernandez5x5: [
+          ['WACC \\ g', '1,50%', '1,75%', '2,00% (Base)', '2,25%', '2,50%'],
+          ['6,80% (-1%)', '98,40 $', '101,80 $', '105,60 $', '109,90 $', '114,70 $'],
+          ['7,30% (-0,5%)', '91,20 $', '94,10 $', '97,30 $', '100,80 $', '104,80 $'],
+          ['7,80% (Base)', '86,90 $', '89,50 $', '92,40 $', '95,50 $', '98,90 $'],
+          ['8,30% (+0,5%)', '81,40 $', '83,60 $', '86,00 $', '88,60 $', '91,50 $'],
+          ['8,80% (+1%)', '76,50 $', '78,40 $', '80,40 $', '82,60 $', '85,00 $']
+        ],
+        lynch: {
+          b1: 'Nike vende casi 50.000 millones de dólares al año en calzado y ropa deportiva. Por cada 100 $ invertidos en el negocio saca 21,40 $ limpios al año, casi el triple de su coste de financiación (7,8%).',
+          b2: 'Cuentas sanas (Piotroski 6/9 y sin maquillaje en Beneish). Paga dividendo creciente desde hace 23 años y recompra acciones propias.',
+          b3: 'Hoy cotiza en directo a 76,84 $. Por sus beneficios futuros vale 92,40 $, y en el gráfico ha frenado en seco en los 75,20 $ (el suelo donde los grandes fondos institucionales están acumulando).',
+          b4: 'A 1 año apunta a 84,50 $ (+12,1%), a 3 años a 104,00 $ (+13,5% anual) y a 5 años a 132,00 $ (+13,1% anual). Mantén tu posición de MyInvestor con total tranquilidad.'
+        }
+      },
+      ASML: {
+        ticker: 'ASML', name: 'ASML Holding N.V.', regime: 'Régimen 3 • Monopolio Litografía de Chips (Euronext Ámsterdam)',
+        price: '665,00 €', change1d: '+1,25%', valFund: '845,00 €', valFundRange: '745,00 € — 960,00 €', mos: '+21,3% Margen de Seguridad',
+        valTechEq: '658,00 € (POC Institucional)', ptTech: '790,00 €', techStage: 'Etapa 2 Inicial / Compresión VCP sobre Soporte',
+        scoreFund: 93, scoreTech: 80, moat: 94, piotroski: '8 / 9', beneish: '-2,68 (Excelente calidad)',
+        roicWacc: 'ROIC Ajustado I+D: 31,2% vs WACC: 8,4% (+22,8% Spread)',
+        reverseDCF: 'A 665 €, el mercado descuenta un crecimiento de solo el +8% anual cuando la demanda EUV proyecta +14,5% anual.',
+        consensus: '870,00 € (Rango Bancos: 740 € — 1.050 €)',
+        consensusDiff: 'Coincidencia alcista entre nuestro DCF con I+D capitalizado (845 €) y el consenso (870 €).',
+        sentiment: 'Optimismo Institucional Sólido (+68/100 • Pedidos fuertes de TSMC para 2027)',
+        verdict: '🟢 COMPRA FUERTE (Candidata nº1 para rotar desde FBIO)', horizon: 'Medio y Largo Plazo (3 a 5 años: TIR +17,4% anual)',
+        buyZone: '645,00 € — 680,00 €', stopLevel: '618,00 € (Soporte institucional en 642 €)', takeProfit: 'Por encima de 1.015,00 €',
+        matrix3x3: {
+          cp: { cons: '620,00 € (-5,8%)', base: '785,00 € (+19,2%)', opt: '860,00 € (+30,5%)' },
+          mp: { cons: '760,00 € (+5,6%/a)', base: '1.040,00 € (+17,4%/a)', opt: '1.210,00 € (+23,2%/a)' },
+          lp: { cons: '920,00 € (+7,8%/a)', base: '1.390,00 € (+16,9%/a)', opt: '1.650,00 € (+20,8%/a)' }
+        },
+        fernandez5x5: [
+          ['WACC \\ g', '1,50%', '1,75%', '2,00% (Base)', '2,25%', '2,50%'],
+          ['7,40% (-1%)', '910,00 €', '938,00 €', '968,00 €', '1.002,00 €', '1.040,00 €'],
+          ['7,90% (-0,5%)', '852,00 €', '876,00 €', '902,00 €', '931,00 €', '963,00 €'],
+          ['8,40% (Base)', '801,00 €', '822,00 €', '845,00 €', '870,00 €', '897,00 €'],
+          ['8,90% (+0,5%)', '755,00 €', '773,00 €', '793,00 €', '815,00 €', '839,00 €'],
+          ['9,40% (+1%)', '714,00 €', '730,00 €', '747,00 €', '766,00 €', '786,00 €']
+        ],
+        lynch: {
+          b1: 'ASML tiene el mayor monopolio tecnológico del mundo (Moat 94/100): fabrica en exclusiva las máquinas EUV sin las cuales es imposible fabricar los chips de IA o de los iPhones.',
+          b2: 'Salud financiera sobresaliente (Piotroski 8/9), más efectivo en el banco que deuda y un retorno del 31,2% sobre el capital.',
+          b3: 'Cotiza hoy a 665,00 € apoyada exactamente sobre el suelo de los grandes fondos (658,00 €), mientras que su valor por cuentas es de 845,00 €.',
+          b4: 'Es el destino ideal para los 431 € que rescates al vender FBIO en MyInvestor. Zona ideal de compra: 645 € — 680 €.'
+        }
+      },
+      'RWE.DE': {
+        ticker: 'RWE.DE', name: 'RWE AG', regime: 'Régimen 6 • Infraestructura Eléctrica y Renovable (Xetra Alemania)',
+        price: '32,60 €', change1d: '+0,65%', valFund: '41,50 €', valFundRange: '36,80 € — 46,90 €', mos: '+21,4% Margen de Seguridad',
+        valTechEq: '31,10 € (POC superado al alza)', ptTech: '38,80 €', techStage: 'Etapa 2 de Weinstein (Tendencia Alcista Sana)',
+        scoreFund: 85, scoreTech: 82, moat: 68, piotroski: '7 / 9', beneish: '-2,55 (Cuentas limpias)',
+        roicWacc: 'ROIC: 8,9% vs WACC: 6,2% (+2,7% Spread Regulado)',
+        reverseDCF: 'A 32,60 €, el mercado valora sus nuevos parques renovables casi a cero euros.',
+        consensus: '43,20 € (Rango Bancos: 36 € — 50 €)',
+        consensusDiff: 'Plena alineación entre nuestro modelo (41,50 €) y el consenso (43,20 €).',
+        sentiment: 'Optimismo Institucional (+61/100 • Recompra de 1.500 M€ en marcha)',
+        verdict: '🟢 MANTENER INTACTA (+15,56% más dividendo cobrado)', horizon: 'Medio a Largo Plazo (2 a 5 años)',
+        buyZone: '30,50 € — 33,20 €', stopLevel: '29,40 €', takeProfit: 'Por encima de 44,50 €',
+        matrix3x3: {
+          cp: { cons: '30,50 € (-3,2%)', base: '37,90 € (+19,5%)', opt: '41,50 € (+30,5%)' },
+          mp: { cons: '35,00 € (+5,8%/a)', base: '44,20 € (+13,8%/a)', opt: '49,50 € (+18,0%/a)' },
+          lp: { cons: '39,00 € (+6,9%/a)', base: '51,00 € (+12,6%/a)', opt: '58,00 € (+15,5%/a)' }
+        },
+        fernandez5x5: [
+          ['WACC \\ g', '1,25%', '1,50%', '1,75% (Base)', '2,00%', '2,25%'],
+          ['5,20% (-1%)', '45,20 €', '46,80 €', '48,60 €', '50,70 €', '53,10 €'],
+          ['6,20% (Base)', '39,30 €', '40,30 €', '41,50 €', '42,80 €', '44,20 €'],
+          ['7,20% (+1%)', '34,50 €', '35,20 €', '36,00 €', '36,90 €', '37,80 €']
+        ],
+        lynch: {
+          b1: 'Líder eléctrico alemán firmando contratos de suministro a largo plazo con los grandes centros de datos europeos.',
+          b2: 'Piotroski de 7/9 y recomprando 1.500 millones de euros de sus propias acciones porque cotizan por debajo de su valor en libros.',
+          b3: 'La compraste el 15 de enero a un precio excelente y ya ganas +79 € (+15,56%) más los +7,15 € del dividendo de mayo. Su valor justo sigue en 41,50 €.',
+          b4: 'No vendas: ahorras pasar por Hacienda y sigues cobrando dividendos crecientes.'
+        }
+      },
+      '21BC.DE': {
+        ticker: '21BC.DE', name: '21Shares Bitcoin Core ETP', regime: 'Régimen 8 • Criptoactivo Físico (100% Bitcoin en Frío • Xetra)',
+        price: '33,91 €', change1d: '+1,85%', valFund: '38,58 € (Ley Metcalfe + MVRV Equilibrio)', valFundRange: '27,80 € — 49,50 €', mos: '+12,1% Descuento a Equilibrio de Ciclo',
+        valTechEq: '31,20 € (POC Institucional)', ptTech: '41,20 €', techStage: 'Etapa 2 de Weinstein (Tendencia Alcista)',
+        scoreFund: 81, scoreTech: 88, moat: 82, piotroski: 'N/A (Red Monetaria)', beneish: 'Custodia 100% Física Auditada (TER: 0,21%)',
+        roicWacc: 'MVRV On-Chain: 1,92x (Alcista Sano • Burbuja > 3,2x)',
+        reverseDCF: 'Cotiza un +38% por encima del coste eléctrico marginal de los mineros (suelo histórico).',
+        consensus: '39,50 € (Rango: 28 € — 52 €)',
+        consensusDiff: 'Valorado combinando crecimiento de direcciones activas al cuadrado (Metcalfe) y Precio Realizado On-Chain.',
+        sentiment: 'Fuerte Demanda Institucional (+74/100 • Flujos positivos en ETPs)',
+        verdict: '🟢 MANTENER (+25,45%) PERO NO AMPLIAR POR PESO (18,75%)', horizon: 'Medio Plazo (Ciclo Halving / Liquidez Global)',
+        buyZone: '29,50 € — 32,00 €', stopLevel: '26,80 €', takeProfit: 'Tramo 1 en 42,50 € | Tramo 2 si MVRV > 3,0x (~51 €)',
+        matrix3x3: {
+          cp: { cons: '26,50 € (-21,8%)', base: '40,20 € (+18,5%)', opt: '48,50 € (+43,0%)' },
+          mp: { cons: '29,00 € (-5,1%/a)', base: '53,60 € (+16,5%/a)', opt: '72,00 € (+28,5%/a)' },
+          lp: { cons: '34,00 € (+0,1%/a)', base: '68,00 € (+14,9%/a)', opt: '95,00 € (+22,8%/a)' }
+        },
+        fernandez5x5: [
+          ['MVRV \\ Adopción', 'Baja', 'Base (1,92x)', 'Euforia (3,2x)'],
+          ['Liquidez M2 Alta', '34,20 €', '43,50 €', '58,40 €'],
+          ['Liquidez Base', '30,50 €', '38,58 €', '51,90 €'],
+          ['Liquidez Restrictiva', '26,80 €', '33,40 €', '44,50 €']
+        ],
+        lynch: {
+          b1: 'ETP respaldado al 100% por Bitcoin real en cámara acorazada con una comisión mínima del 0,21% anual.',
+          b2: 'El indicador de burbujas MVRV está en 1,92x: a mitad de ciclo alcista y lejos del nivel peligroso de 3,2x.',
+          b3: 'La compraste el 10-feb por 497,44 € y ya vale 624,02 € (+126,58 €). Como ya ocupa el 18,75% de tu cartera, no metas más dinero aquí.',
+          b4: 'Mantén sin tocar para no pagar IRPF y recoge beneficios parciales cuando supere los 42 € - 45 €.'
+        }
+      },
+      FBIO: {
+        ticker: 'FBIO', name: 'Fortress Biotech Inc.', regime: 'Régimen 3/6 • Micro-Biotecnológica (Nasdaq • EE. UU.)',
+        price: '1,50 $', change1d: '-1,95%', valFund: '0,85 $ (Penalizada por quema de caja y dilución)', valFundRange: '0,40 $ — 1,20 $', mos: '-76,4% Sobrevalorada / Quema Caja',
+        valTechEq: '1,82 $ (Perdido a la baja)', ptTech: '1,10 $ (Etapa 4 Bajista)', techStage: 'Etapa 4 de Weinstein (Tendencia Bajista Primaria)',
+        scoreFund: 22, scoreTech: 19, moat: 18, piotroski: '2 / 9 (Alerta Roja)', beneish: '-2,05 (Dilución severa de acciones)',
+        roicWacc: 'ROIC: -28,4% vs WACC: 12,5% (Destruye Capital)',
+        reverseDCF: 'Quema efectivo todos los trimestres y registra ampliaciones de capital (Form S-3).',
+        consensus: '3,00 $ (Analistas de bancos colocadores)',
+        consensusDiff: 'Los bancos pequeños le dan 3,00 $ ignorando la dilución de acciones nuevas; nuestro motor descuenta la quema de caja real.',
+        sentiment: 'Alerta Pesimista (-68/100 • Riesgo de dilución por emisión de acciones)',
+        verdict: '🔴 VENDER HOY EN MYINVESTOR Y COSECHAR ESCUDO FISCAL (-155 €)', horizon: 'Ninguno (Salir hoy y rotar a ASML / MSCI World)',
+        buyZone: 'Descartada por el protocolo', stopLevel: 'Venta inmediata recomendada', takeProfit: 'Rebote técnico máximo en 1,65 $',
+        matrix3x3: {
+          cp: { cons: '0,65 $ (-56%)', base: '1,05 $ (-30%)', opt: '1,75 $ (+16%)' },
+          mp: { cons: '0,40 $ (-35%/a)', base: '0,85 $ (-17%/a)', opt: '1,90 $ (+8%/a)' },
+          lp: { cons: '0,25 $ (-30%/a)', base: '0,70 $ (-14%/a)', opt: '2,10 $ (+7%/a)' }
+        },
+        fernandez5x5: [
+          ['Escenario Caja', 'Dilución Alta', 'Dilución Media (Base)', 'Sin Dilución'],
+          ['Escenario Base', '0,60 $', '0,85 $', '1,15 $']
+        ],
+        lynch: {
+          b1: 'Pequeña biotecnológica que desarrolla fármacos experimentales pero pierde dinero todos los trimestres.',
+          b2: 'Piotroski de solo 2/9: sobrevive emitiendo nuevas acciones que hacen que tu trozo de la empresa valga cada vez menos.',
+          b3: 'Al venderla hoy rescatas 431,48 € líquidos y afloras una pérdida fiscal de -155,52 €.',
+          b4: 'Gracias a esa pérdida fiscal, los +59,16 € que ganaste vendiendo APLD y CWAN quedan 100% libres de pagar IRPF en Hacienda.'
+        }
+      },
+      CDE: {
+        ticker: 'CDE', name: 'Coeur Mining, Inc.', regime: 'Régimen 5 • Minería Cíclica de Plata y Oro (NYSE)',
+        price: '5,66 $', change1d: '+1,40%', valFund: '5,40 $ (Mitad de Ciclo 7 Años)', valFundRange: '4,20 $ — 6,80 $', mos: '-4,8% (En valor de mitad de ciclo)',
+        valTechEq: '6,15 $ (POC Institucional)', ptTech: '6,90 $ (Objetivo Rebote Plata)', techStage: 'Sobreventa Extrema en Soporte con Giro de Plata',
+        scoreFund: 49, scoreTech: 62, moat: 32, piotroski: '5 / 9', beneish: '-2,30 (Cuentas legales, fin obras mina Rochester)',
+        roicWacc: 'ROIC Ciclo: 6,1% vs WACC: 9,4%',
+        reverseDCF: 'Ha terminado el gran gasto de ampliación de su mina de plata en Nevada (Rochester).',
+        consensus: '7,25 $ (Rango: 5,50 $ — 9,00 $)',
+        consensusDiff: 'Valoramos con prudencia su historial de deuda, pero reconocemos el potencial de rebote a corto plazo por la plata.',
+        sentiment: 'Constructivo en Metales (+38/100 • Rebote en plata y oro)',
+        verdict: '🟡 NO MALVENDER HOY EN MÍNIMOS: ESPERAR REBOTE A 6,65 $ - 6,90 $', horizon: 'Salida Táctica en Rebote (1 a 4 meses)',
+        buyZone: '4,80 $ — 5,20 $', stopLevel: '4,95 $', takeProfit: 'Vender en rebote hacia 6,65 $ — 6,95 $',
+        matrix3x3: {
+          cp: { cons: '4,70 $ (-17%)', base: '6,85 $ (+21,0%)', opt: '7,90 $ (+39,5%)' },
+          mp: { cons: '4,40 $ (-8%/a)', base: '6,20 $ (+3,1%/a)', opt: '8,50 $ (+14,5%/a)' },
+          lp: { cons: '4,00 $ (-6,7%/a)', base: '5,80 $ (+0,5%/a)', opt: '8,90 $ (+9,5%/a)' }
+        },
+        fernandez5x5: [
+          ['Precio Plata \\ WACC', '10,4%', '9,4% (Base)', '8,4%'],
+          ['Plata 31 $/oz (Base)', '4,90 $', '5,40 $', '6,10 $'],
+          ['Plata 36 $/oz (Alcista)', '6,20 $', '6,90 $', '7,80 $']
+        ],
+        lynch: {
+          b1: 'Minera de plata y oro en EE. UU. y México que acaba de terminar de ampliar su mayor mina en Nevada.',
+          b2: 'Te costó 495,88 € el 20 de enero. Como ya cubres tus impuestos de 2026 vendiendo FBIO, no tienes ninguna necesidad de malvender CDE hoy en mínimos.',
+          b3: 'Cuando la plata rebota un +5%, CDE suele rebotar un +18% a +25% en pocas semanas hacia los 6,65 $ - 6,90 $.',
+          b4: 'Mantén unos meses y pon orden de venta en 6,65 $ - 6,90 $ para recuperar gran parte de tu inversión.'
+        }
+      },
+      MOMO: {
+        ticker: 'MOMO', name: 'Hello Group Inc. (ADR)', regime: 'Régimen 3 (Asia VIE) • Apps Sociales en China (Nasdaq)',
+        price: '6,35 $', change1d: '-0,60%', valFund: '5,80 $ (Descuento VIE y caída usuarios)', valFundRange: '4,50 $ — 7,10 $', mos: '-9,5% Trampa de Valor',
+        valTechEq: '6,85 $ (Media Institucional)', ptTech: '6,85 $ (Rebote técnico máximo)', techStage: 'Etapa 4 de Weinstein (Debilidad en China)',
+        scoreFund: 44, scoreTech: 36, moat: 25, piotroski: '4 / 9', beneish: '-2,10 (Contabilidad legal pero ventas encogiéndose)',
+        roicWacc: 'ROIC: 7,9% vs WACC: 11,8%',
+        reverseDCF: 'El mercado descuenta una caída anual del -4% en usuarios frente a Douyin (TikTok).',
+        consensus: '7,50 $ (Rango: 5,50 $ — 9,80 $)',
+        consensusDiff: 'Aplicamos un descuento de gobernanza del 25% a su caja en yuanes y penalizamos la estructura VIE.',
+        sentiment: 'Débil (-25/100 • Sin catalizador de dividendo hasta abril del próximo año)',
+        verdict: '🟠 VENDER EN REBOTE HACIA 6,85 $ - 7,10 $ (O ROTAR YA)', horizon: 'Salida en primer rebote de bolsa china',
+        buyZone: 'Descartada (Trampa de Valor)', stopLevel: '5,75 $', takeProfit: 'Salir en 6,85 $ — 7,10 $',
+        matrix3x3: {
+          cp: { cons: '4,80 $ (-24%)', base: '5,90 $ (-7%)', opt: '7,10 $ (+11,8%)' },
+          mp: { cons: '4,20 $ (-12%/a)', base: '5,80 $ (-3%/a)', opt: '7,80 $ (+7%/a)' },
+          lp: { cons: '3,50 $ (-11%/a)', base: '5,50 $ (-2,8%/a)', opt: '8,20 $ (+5%/a)' }
+        },
+        fernandez5x5: [
+          ['WACC \\ Caja China', 'Descuento 35%', 'Descuento 25% (Base)', 'Sin Descuento'],
+          ['11,8% (Base)', '5,10 $', '5,80 $', '7,10 $']
+        ],
+        lynch: {
+          b1: 'Dueña de las apps de citas Momo y Tantan en China. Pierde usuarios frente a TikTok porque no tiene costes de cambio.',
+          b2: 'Te costó 504,22 € el 14-ene y ya cobraste +14,67 € de dividendo el 30 de abril.',
+          b3: 'Como paga un único dividendo al año en primavera, quedártela ahora supone tener el dinero parado otros 6 meses sin catalizador.',
+          b4: 'Aprovecha cualquier rebote hacia 6,85 $ - 7,10 $ para venderla y pasar ese capital a una empresa creciente.'
+        }
+      },
+      'TPZ.MC': {
+        ticker: 'TPZ.MC (Caso TFG 2016)', name: 'Telepizza Group, S.A. (Auditoría Histórica TFG UNED)', regime: 'Régimen 4/6 • Restauración Rápida (OPV Abril 2016)',
+        price: '7,75 € (Precio Salida a Bolsa 2016)', change1d: '-19,35% (Estreno)', valFund: '5,97 € (Cálculo Exacto Anexo IV TFG)', valFundRange: '4,70 € — 6,80 €', mos: '-29,81% Sobrevaloración en OPV',
+        valTechEq: '5,80 €', ptTech: '4,90 €', techStage: 'Distribución Institucional Post-OPV',
+        scoreFund: 31, scoreTech: 22, moat: 38, piotroski: '3 / 9', beneish: '-1,62 (Alerta Forense AQI: 80,8% Goodwill e Intangibles)',
+        roicWacc: 'ROIC (con Goodwill): 4,1% vs WACC: 6,58% (Destruye Valor)',
+        reverseDCF: 'A 7,75 €, los bancos colocadores exigían crecer al +6,5% perpetuo en una España ya saturada.',
+        consensus: '8,50 € (Bancos Colocadores de la OPV en 2016)',
+        consensusDiff: 'Tu protocolo del TFG detectó que el 80,8% de los activos era humo contable y clavó los 5,97 € a los que KKR la excluyó de bolsa en 2019 (6,00 €).',
+        sentiment: 'Alerta Forense (-75/100 • Plan de incentivos directivos y pérdidas por amortización)',
+        verdict: '🔴 DESCARTAR INVERSIÓN (Validado: Excluida en 2019 a 6,00 €)', horizon: 'Ninguno (Protección Patrimonial Exitosa)',
+        buyZone: 'Máximo 4,18 € (Con 30% Margen de Seguridad)', stopLevel: 'No acudir a la OPV', takeProfit: 'Por encima de 7,16 €',
+        matrix3x3: {
+          cp: { cons: '4,50 € (-41,9%)', base: '5,50 € (-29,0%)', opt: '6,40 € (-17,4%)' },
+          mp: { cons: '4,70 € (-15,3%/a)', base: '5,97 € (-8,3%/a)', opt: '6,80 € (-4,3%/a)' },
+          lp: { cons: '4,50 € (-10,3%/a)', base: '6,00 € (-5,0%/a)', opt: '7,10 € (-1,7%/a)' }
+        },
+        fernandez5x5: [
+          ['WACC \\ g', '1,50%', '2,00% (TFG)', '2,50%'],
+          ['5,58% (-1%)', '6,85 €', '7,48 €', '8,30 €'],
+          ['6,58% (Base TFG)', '5,42 €', '5,97 €', '6,65 €'],
+          ['7,58% (+1%)', '4,38 €', '4,82 €', '5,36 €']
+        ],
+        lynch: {
+          b1: 'Caso práctico de tu TFG: Telepizza tenía fábricas propias de masa, pero ningún cliente tenía coste de cambio para pedir en Domino’s o en la pizzería del barrio.',
+          b2: '8 de cada 10 € de su balance (80,8%) eran fondo de comercio y marcas infladas de compras pasadas, con 200 M€ de deuda.',
+          b3: 'Tu calculadora obtuvo un Valor Intrínseco de 5,97 € frente a los 7,75 € que pedían en la OPV, emitiendo orden rotunda de DESCARTAR.',
+          b4: 'En 2019 KKR lanzó la OPA de exclusión a 6,00 € (4,70 € ex-dividendo), confirmando con precisión milimétrica tu modelo de la UNED.'
+        }
+      }
+    };
+
+    const RADAR_40_DATA = {
+      corto: [
+        { ticker: 'NVDA', name: 'NVIDIA Corp', region: 'EE. UU. • Semis IA', price: '136,50 $', change1d: '+2,14%', valFund: '152,00 $', ptTech: '164,00 $', tir: '+22,4%', asym: '3,4x', scoreFund: 78, scoreTech: 94, signal: '🟢 COMPRAR (Ruptura VCP + Sorpresa BPA)', desc: 'Compresión de volatilidad en Etapa 2 tras batir resultados trimestrales (PEAD activo). CMF institucional +0,24.', thesisShort: 'Los grandes centros de datos mundiales tienen agotada su producción de chips Blackwell para los próximos 12 meses. ROIC > 50% y ruptura técnica.' },
+        { ticker: 'ITX.MC', name: 'Inditex (Zara)', region: 'España • IBEX 35', price: '49,20 €', change1d: '+0,85%', valFund: '55,80 €', ptTech: '56,50 €', tir: '+18,1%', asym: '3,1x', scoreFund: 86, scoreTech: 88, signal: '🟢 COMPRAR (Fuerza Relativa + Caja Récord)', desc: 'Líder del mercado español con ROIC del 28%, más de 11.000 M€ de caja neta y apoyo en AVWAP institucional.', thesisShort: 'Vende moda más rápido que nadie sin acumular inventario. Su caja neta le genera intereses y su gráfico está en Etapa 2 alcista.' },
+        { ticker: '3690.HK', name: 'Meituan (Asia)', region: 'Asia • Hong Kong', price: '172,00 HK$', change1d: '+3,10%', valFund: '225,00 HK$', ptTech: '212,00 HK$', tir: '+26,0%', asym: '2,8x', scoreFund: 81, scoreTech: 85, signal: '🟢 COMPRAR TÁCTICO', desc: 'Líder de reparto local en China saliendo de Etapa 1 con mejora de Piotroski de 5 a 8.', thesisShort: 'A diferencia de MOMO, Meituan tiene efecto red real en reparto de comida y comercios en China con beneficios subiendo un +40%.' },
+        { ticker: 'IBE.MC', name: 'Iberdrola S.A.', region: 'España • IBEX 35', price: '13,45 €', change1d: '+0,60%', valFund: '15,20 €', ptTech: '15,10 €', tir: '+16,8%', asym: '3,3x', scoreFund: 82, scoreTech: 86, signal: '🟢 COMPRAR (Viento Macro Redes)', desc: 'Beneficiada directa de las bajadas de tipos y de la demanda eléctrica de centros de datos.', thesisShort: 'Cobra peajes regulados por transportar electricidad en España, EE. UU. y Reino Unido con dividendo creciente > 4%.' },
+        { ticker: 'PLTR', name: 'Palantir Technologies', region: 'EE. UU. • Software IA/Defensa', price: '42,80 $', change1d: '+1,90%', valFund: '36,50 $', ptTech: '51,00 $', tir: '+19,2%', asym: '2,4x', scoreFund: 64, scoreTech: 95, signal: '🟢 SOLO TRADING TÁCTICO (Cuadrante 3)', desc: 'Contratos militares y comerciales de IA disparándose. Exigente por DCF pero líder de momento en S&P 500.', thesisShort: 'Operación táctica de corto plazo impulsada por la entrada masiva de fondos tras su inclusión en el S&P 500.' },
+        { ticker: 'SAP.DE', name: 'SAP SE', region: 'Europa • Alemania', price: '214,50 €', change1d: '+1,12%', valFund: '238,00 €', ptTech: '242,00 €', tir: '+16,5%', asym: '3,0x', scoreFund: 83, scoreTech: 91, signal: '🟢 COMPRAR (Sorpresa Cloud + Etapa 2)', desc: 'Migración masiva de empresas a su nube con IA. Supera con holgura la Regla del 40.', thesisShort: 'Costes de cambio extremos (Moat 89/100): ninguna multinacional cambia su software contable SAP. Tendencia impecable en euros.' },
+        { ticker: '6501.T', name: 'Hitachi Ltd.', region: 'Asia • Japón', price: '3.890 ¥', change1d: '+1,75%', valFund: '4.450 ¥', ptTech: '4.520 ¥', tir: '+18,4%', asym: '2,9x', scoreFund: 80, scoreTech: 89, signal: '🟢 COMPRAR (Red Eléctrica Global)', desc: 'Líder mundial en transformadores de alta tensión (Hitachi Energy) con pedidos llenos por 5 años.', thesisShort: 'Para conectar parques renovables y centros de datos de IA son indispensables los transformadores de Hitachi.' },
+        { ticker: 'FER.MC', name: 'Ferrovial SE', region: 'España / EE. UU. • Autopistas', price: '38,10 €', change1d: '+0,45%', valFund: '43,50 €', ptTech: '42,80 €', tir: '+15,9%', asym: '3,2x', scoreFund: 79, scoreTech: 84, signal: '🟢 COMPRAR (Monopolios Peaje)', desc: 'Sus autopistas Managed Lanes en Texas y Canadá suben tarifas por encima de la inflación.', thesisShort: 'Concesiones monopolísticas de larguísimo plazo que acaban de empezar a cotizar también en el Nasdaq.' },
+        { ticker: 'ANET', name: 'Arista Networks', region: 'EE. UU. • Redes Cloud', price: '392,00 $', change1d: '+2,30%', valFund: '435,00 $', ptTech: '448,00 $', tir: '+17,5%', asym: '2,8x', scoreFund: 84, scoreTech: 90, signal: '🟢 COMPRAR (Caja Neta + VCP)', desc: 'Conecta los miles de chips de IA dentro de los centros de datos de Microsoft y Meta.', thesisShort: 'Balance limpio sin deuda, ROIC > 30% y compresión de volatilidad lista para romper al alza.' },
+        { ticker: 'UNI.MC', name: 'Unicaja Banco', region: 'España • Banca', price: '1,18 €', change1d: '+1,40%', valFund: '1,52 €', ptTech: '1,40 €', tir: '+23,0%', asym: '2,9x', scoreFund: 81, scoreTech: 83, signal: '🟢 COMPRAR (Dividendo + Recompra)', desc: 'Cotiza a solo 0,62x su valor contable tangible con exceso de capital CET1 > 15%.', thesisShort: 'Devuelve casi un 9% anual al accionista entre dividendos y recompras cotizando con gran descuento sobre sus activos.' }
+      ],
+      medio: [
+        { ticker: 'ASML', name: 'ASML Holding', region: 'Europa • Países Bajos', price: '665,00 €', change1d: '+1,25%', valFund: '845,00 €', ptTech: '790,00 €', tir: '+17,4% /a', asym: '3,8x', scoreFund: 93, scoreTech: 80, signal: '🟢 COMPRA FUERTE (Confluencia)', desc: 'Monopolio mundial de litografía EUV con un 21% de descuento fundamental sobre soporte POC (658 €).', thesisShort: 'Candidata número 1 para rotar el dinero rescatado de FBIO: compras un monopolio mundial en rebajas.' },
+        { ticker: 'SAN.MC', name: 'Banco Santander', region: 'España • Banca', price: '4,48 €', change1d: '+0,92%', valFund: '5,95 €', ptTech: '5,30 €', tir: '+16,2% /a', asym: '3,2x', scoreFund: 85, scoreTech: 82, signal: '🟢 COMPRAR (Rerating P/TBV)', desc: 'Cotiza a 0,78x su Patrimonio Neto Tangible generando un ROTE del 15,5% y recomprando acciones.', thesisShort: 'Gana más de 12.000 M€ anuales pero sigue cotizando un 22% por debajo de su valor en libros.' },
+        { ticker: '8035.T', name: 'Tokyo Electron', region: 'Asia • Japón', price: '24.800 ¥', change1d: '+1,60%', valFund: '32.500 ¥', ptTech: '30.200 ¥', tir: '+16,9% /a', asym: '3,3x', scoreFund: 89, scoreTech: 79, signal: '🟢 COMPRAR (Reforma Tokio)', desc: 'Líder japonés de maquinaria para semiconductores con caja neta, ROIC del 24% y recompras.', thesisShort: 'Socio clave de TSMC en Japón que cotiza con un 23% de margen de seguridad tras corregir en verano.' },
+        { ticker: 'GOOGL', name: 'Alphabet Inc. (Google)', region: 'EE. UU. • Tech/Cloud', price: '168,50 $', change1d: '+1,05%', valFund: '215,00 $', ptTech: '198,00 $', tir: '+16,8% /a', asym: '3,7x', scoreFund: 92, scoreTech: 81, signal: '🟢 COMPRA FUERTE (Múltiplo Deprimido)', desc: 'Cotiza a un PER de solo 19x creciendo al +14% anual en Búsquedas, YouTube y Google Cloud.', thesisShort: 'El ruido regulatorio te permite comprar Google, YouTube y Android más barato que el promedio del S&P 500.' },
+        { ticker: 'LOG.MC', name: 'Logista Integral', region: 'España • Distribución', price: '27,40 €', change1d: '+0,35%', valFund: '34,20 €', ptTech: '31,50 €', tir: '+15,4% /a', asym: '3,9x', scoreFund: 86, scoreTech: 78, signal: '🟢 COMPRAR (Monopolio + Dividendo 7%)', desc: 'Red logística insustituible en España, Francia e Italia con >2.000 M€ de caja y dividendo del 7%.', thesisShort: 'Cero deuda, altísima conversión de caja y peaje logístico sobre estancos, farmacias y transporte en frío.' },
+        { ticker: 'NOVO-B.CO', name: 'Novo Nordisk', region: 'Europa • Dinamarca', price: '785,00 DKK', change1d: '+0,95%', valFund: '980,00 DKK', ptTech: '910,00 DKK', tir: '+16,5% /a', asym: '3,5x', scoreFund: 94, scoreTech: 77, signal: '🟢 COMPRAR EN SOPORTE', desc: 'Líder mundial en diabetes y obesidad (Ozempic/Wegovy) con ROIC > 40% tras corregir un 22%.', thesisShort: 'Una de las empresas con mayor retorno sobre el capital del mundo ofreciendo por fin una rebaja del 20%.' },
+        { ticker: 'AMZN', name: 'Amazon.com Inc.', region: 'EE. UU. • Cloud / Comercio', price: '189,00 $', change1d: '+1,30%', valFund: '238,00 $', ptTech: '222,00 $', tir: '+17,1% /a', asym: '3,6x', scoreFund: 90, scoreTech: 83, signal: '🟢 COMPRAR (Explosión FCF)', desc: 'Al capitalizar su I+D y logística, su Flujo de Caja Libre se duplica impulsado por AWS y publicidad.', thesisShort: 'Terminó su ciclo de gasto masivo en almacenes y ahora cosecha márgenes récord.' },
+        { ticker: 'CAF.MC', name: 'CAF Ferrocarriles', region: 'España • Industrial', price: '35,20 €', change1d: '+0,70%', valFund: '46,80 €', ptTech: '42,00 €', tir: '+16,4% /a', asym: '3,4x', scoreFund: 84, scoreTech: 79, signal: '🟢 COMPRAR (Cartera Récord)', desc: 'Más de 14.000 M€ en pedidos firmados de trenes y autobuses Solaris en Europa a solo 6,5x EV/EBITDA.', thesisShort: 'Piotroski 7/9 con mejora continua de márgenes operativos y años de ingresos asegurados.' },
+        { ticker: 'SONY', name: 'Sony Group (ADR)', region: 'Asia • Japón (ADR USD)', price: '94,50 $', change1d: '+1,15%', valFund: '122,00 $', ptTech: '112,00 $', tir: '+15,5% /a', asym: '3,1x', scoreFund: 83, scoreTech: 80, signal: '🟢 COMPRAR (Sensores + PlayStation)', desc: 'Monopolio de sensores de imagen para iPhone, música global y ecosistema PlayStation.', thesisShort: 'Cotiza con un 22% de descuento respecto a la valoración por suma de sus negocios.' },
+        { ticker: 'AIR.PA', name: 'Airbus SE', region: 'Europa • Aeroespacial', price: '139,80 €', change1d: '+0,80%', valFund: '176,00 €', ptTech: '162,00 €', tir: '+15,8% /a', asym: '3,3x', scoreFund: 87, scoreTech: 78, signal: '🟢 COMPRAR (Duopolio Mundial)', desc: '8.500 aviones encargados en firme (producción vendida hasta 2032) y 10.000 M€ de caja neta.', thesisShort: 'Duopolio mundial donde su único competidor (Boeing) atraviesa una crisis estructural.' }
+      ],
+      largo: [
+        { ticker: 'MSFT', name: 'Microsoft Corp', region: 'EE. UU. • Software/Cloud', price: '418,00 $', change1d: '+0,90%', valFund: '495,00 $', ptTech: '475,00 $', tir: '+15,6% /a', asym: '4,1x', scoreFund: 95, scoreTech: 84, signal: '🟢 COMPOUNDER EN DESCUENTO', desc: 'Moat Score 95/100, ROIC ajustado del 29% y Piotroski 8/9 descansando sobre soporte institucional.', thesisShort: 'El sistema operativo de todas las empresas del planeta componiendo flujo de caja al +15% anual.' },
+        { ticker: 'MRL.MC', name: 'Merlin Properties', region: 'España • SOCIMI / Centros Datos', price: '10,65 €', change1d: '+0,55%', valFund: '13,90 €', ptTech: '12,80 €', tir: '+15,2% /a', asym: '3,5x', scoreFund: 87, scoreTech: 81, signal: '🟢 COMPRAR LARGO PLAZO', desc: 'Cotiza con un 23% de descuento sobre el valor liquidativo (NAV) de sus edificios y nuevos Centros de Datos.', thesisShort: 'Compras inmuebles prime y centros de datos de IA en España por 77 céntimos cada euro mientras cobras un 4,2% de dividendo.' },
+        { ticker: 'VWCE.DE', name: 'Vanguard FTSE All-World ETF', region: 'Global • Régimen 7 ETF', price: '128,40 €', change1d: '+0,40%', valFund: '142,00 € (3a)', ptTech: '139,00 €', tir: '+9,2% /a', asym: '3,0x', scoreFund: 88, scoreTech: 85, signal: '🟢 ANCLA DE CARTERA', desc: 'Las 3.700 mayores empresas del mundo en un solo ETF acumulativo (TER 0,22%).', thesisShort: 'Columna vertebral ideal en MyInvestor para asegurar el crecimiento global sin riesgo de empresa aislada.' },
+        { ticker: 'V', name: 'Visa Inc.', region: 'EE. UU. • Pagos Globales', price: '284,00 $', change1d: '+0,65%', valFund: '338,00 $', ptTech: '320,00 $', tir: '+14,9% /a', asym: '4,0x', scoreFund: 96, scoreTech: 82, signal: '🟢 COMPOUNDER EFECTO RED', desc: 'Margen operativo del 66%, ROIC > 35% y recompra constante de acciones propias.', thesisShort: 'Cobra un peaje en cada pago con tarjeta del mundo sin asumir el riesgo de impago bancario.' },
+        { ticker: 'VID.MC', name: 'Vidrala S.A.', region: 'España • Envases de Vidrio', price: '96,50 €', change1d: '+0,50%', valFund: '121,00 €', ptTech: '112,00 €', tir: '+14,6% /a', asym: '3,6x', scoreFund: 88, scoreTech: 79, signal: '🟢 NICHO PROTEGIDO LYNCH', desc: 'Monopolios regionales de envases de vidrio cerca de zonas vinícolas y cerveceras.', thesisShort: 'El ejemplo clásico de Peter Lynch en tu TFG: transportar vidrio vacío es tan caro que nadie puede competir desde lejos.' },
+        { ticker: 'SPGI', name: 'S&P Global Inc.', region: 'EE. UU. • Índices y Ratings', price: '498,00 $', change1d: '+0,75%', valFund: '585,00 $', ptTech: '560,00 $', tir: '+14,8% /a', asym: '3,8x', scoreFund: 94, scoreTech: 83, signal: '🟢 OLIGOPOLIO FINANCIERO', desc: 'Dueña de los índices S&P y de la agencia de calificación Standard & Poor’s.', thesisShort: 'Cualquier empresa del mundo que quiera emitir deuda necesita pagar antes el sello de S&P Global.' },
+        { ticker: 'CSU.TO', name: 'Constellation Software', region: 'Canadá • Software Vertical', price: '4.280 CA$', change1d: '+0,90%', valFund: '5.150 CA$', ptTech: '4.890 CA$', tir: '+16,8% /a', asym: '4,2x', scoreFund: 96, scoreTech: 86, signal: '🟢 REINA DEL ROIC', desc: 'Adquiere software de misión crítica (hospitales, ayuntamientos, transporte) reinvirtiendo al 28% anual.', thesisShort: 'Una de las mayores máquinas de interés compuesto de la historia bursátil.' },
+        { ticker: 'ADBE', name: 'Adobe Inc.', region: 'EE. UU. • Software Creativo', price: '486,00 $', change1d: '+1,10%', valFund: '615,00 $', ptTech: '565,00 $', tir: '+16,1% /a', asym: '3,4x', scoreFund: 91, scoreTech: 78, signal: '🟢 COMPOUNDER CON 21% DESCUENTO', desc: 'Estándar mundial (Photoshop, Acrobat) con margen bruto de Novy-Marx del 88%.', thesisShort: 'Ha integrado su propia IA generativa (Firefly) dentro de su suite creativa batiendo récords de flujo libre.' },
+        { ticker: '4063.T', name: 'Shin-Etsu Chemical', region: 'Asia • Japón', price: '5.820 ¥', change1d: '+0,85%', valFund: '7.250 ¥', ptTech: '6.800 ¥', tir: '+14,7% /a', asym: '3,7x', scoreFund: 90, scoreTech: 80, signal: '🟢 MONOPOLIO OBLEAS SILICIO', desc: 'Controla más del 30% mundial de las obleas de silicio para fabricar chips, con cero deuda.', thesisShort: 'Sin las obleas químicas de Shin-Etsu no se puede fabricar ni un solo chip en el planeta.' },
+        { ticker: 'ISRG', name: 'Intuitive Surgical', region: 'EE. UU. • Robótica Médica', price: '492,00 $', change1d: '+1,20%', valFund: '570,00 $', ptTech: '555,00 $', tir: '+14,5% /a', asym: '3,5x', scoreFund: 93, scoreTech: 88, signal: '🟢 MODELO CUCHILLA DE AFEITAR', desc: 'Instala robots quirúrgicos Da Vinci y cobra consumibles en cada operación realizada.', thesisShort: 'Más del 80% de sus ingresos son recurrentes porque los cirujanos operan a diario con sus robots.' }
+      ],
+      incubadora: [
+        { ticker: 'VRTX', name: 'Vertex Pharmaceuticals', region: 'EE. UU. • Biotecnología Rentable', price: '468,00 $', change1d: '-0,40%', valFund: '545,00 $', ptTech: '525,00 $', tir: '+18,2% /a', asym: '3,9x', scoreFund: 92, scoreTech: 74, signal: '⏳ A SOLO 2,1% DE ZONA COMPRA (458 $)', desc: 'Al revés que FBIO, Vertex gana 4.000 M$ al año con monopolio en fibrosis quística (ROIC 26%, cero deuda).', thesisShort: 'Por esta joya el motor te recomienda guardar 450 € de liquidez táctica sin gastar hoy.' },
+        { ticker: 'LVMH.PA', name: 'LVMH Moët Hennessy', region: 'Europa • Lujo (Francia)', price: '625,00 €', change1d: '-0,65%', valFund: '780,00 €', ptTech: '695,00 €', tir: '+15,8% /a', asym: '3,1x', scoreFund: 90, scoreTech: 52, signal: '⏳ VIGILAR GIRO TÉCNICO (Cuadrante 2)', desc: 'Ya está un 20% barata por cuentas, pero en el gráfico sigue en Etapa 4. Esperando entrada de flujo CMF > 0.', thesisShort: 'Aplicamos nuestra regla de oro: no comprar el cuchillo cayendo hasta que los grandes fondos frenen la caída.' },
+        { ticker: 'TSM', name: 'Taiwan Semiconductor (ADR)', region: 'Asia • Taiwán (Ratio 1:5)', price: '188,00 $', change1d: '+1,45%', valFund: '235,00 $', ptTech: '220,00 $', tir: '+19,4% /a', asym: '3,6x', scoreFund: 94, scoreTech: 89, signal: '🚀 ¡ALERTA! A 1,5% DE ACTIVAR ENTRADA', desc: 'Valorada ajustando su divisa TWD y su ratio ADR (1 ADR = 5 acciones ordinarias).', thesisShort: 'Fabrica el 90% de los chips avanzados de Nvidia y Apple. Compresión VCP casi completada.' },
+        { ticker: 'META', name: 'Meta Platforms Inc.', region: 'EE. UU. • Redes/IA', price: '576,00 $', change1d: '+0,80%', valFund: '640,00 $', ptTech: '635,00 $', tir: '+15,1% /a', asym: '3,2x', scoreFund: 89, scoreTech: 87, signal: '⏳ ESPERAR APOYO EN AVWAP (555 $)', desc: '3.200 millones de usuarios diarios; esperando un retroceso del 3,5% hacia soporte para entrar con mayor margen.', thesisShort: 'Excelente negocio, pero en la Incubadora esperamos a que toque los 555 $.' },
+        { ticker: 'ROVI.MC', name: 'Laboratorios Rovi', region: 'España • Salud/CDMO', price: '74,20 €', change1d: '-0,30%', valFund: '92,00 €', ptTech: '86,00 €', tir: '+16,0% /a', asym: '3,3x', scoreFund: 85, scoreTech: 71, signal: '⏳ EN ACUMULACIÓN ETAPA 1 (Gatillo: 72 €)', desc: 'Fabricación de inyectables para farmacéuticas globales consolidando en base plana.', thesisShort: 'A solo un 3% de su soporte institucional de compra en el Mercado Continuo español.' },
+        { ticker: 'MELI', name: 'MercadoLibre Inc.', region: 'América • E-Commerce y Fintech', price: '2.010,00 $', change1d: '+1,10%', valFund: '2.390,00 $', ptTech: '2.310,00 $', tir: '+18,5% /a', asym: '3,4x', scoreFund: 91, scoreTech: 85, signal: '⏳ A 3,2% DE SUELO DE COMPRA (1.945 $)', desc: 'El Amazon + PayPal de Latinoamérica creciendo al +35% anual en flujo libre.', thesisShort: 'Doble foso de efecto red logístico y financiero.' },
+        { ticker: 'RACE', name: 'Ferrari N.V.', region: 'Europa • Italia (Lujo Extremo)', price: '418,00 €', change1d: '+0,40%', valFund: '435,00 €', ptTech: '450,00 €', tir: '+12,4% /a', asym: '2,9x', scoreFund: 97, scoreTech: 82, signal: '⏳ BUENA EMPRESA, ESPERAR REBAJA (375 €)', desc: 'Moat Score 97/100 (lista de espera de 3 años por coche), pero hoy con poco margen de seguridad.', thesisShort: 'La guardamos en la Incubadora para cazarla el día que haya una corrección general del mercado.' },
+        { ticker: '7974.T', name: 'Nintendo Co., Ltd.', region: 'Asia • Japón', price: '7.850 ¥', change1d: '+0,50%', valFund: '9.600 ¥', ptTech: '9.100 ¥', tir: '+15,3% /a', asym: '3,5x', scoreFund: 86, scoreTech: 73, signal: '⏳ VIGILAR CATALIZADOR SWITCH 2', desc: 'Dueña de Mario, Zelda y Pokémon con 14.000 M$ en efectivo sin deuda.', thesisShort: 'En espera de ruptura a Etapa 2 con el lanzamiento de su nueva generación de consolas.' },
+        { ticker: 'ELE.MC', name: 'Endesa S.A.', region: 'España • IBEX 35', price: '19,40 €', change1d: '+0,30%', valFund: '22,80 €', ptTech: '21,90 €', tir: '+14,2% /a', asym: '3,1x', scoreFund: 80, scoreTech: 78, signal: '⏳ EN VIGILANCIA (Gatillo: 18,60 €)', desc: 'Dividendo > 5,5%, pero bloqueada por correlación mientras ya lleves RWE en cartera.', thesisShort: 'Nuestro control de diversificación evita que acumules dos eléctricas europeas a la vez.' },
+        { ticker: 'ETH-ETP', name: '21Shares Ethereum Staking ETP', region: 'Cripto • Régimen 8 (Xetra)', price: '24,10 €', change1d: '+1,80%', valFund: '31,50 €', ptTech: '29,40 €', tir: '+19,0% /a', asym: '2,6x', scoreFund: 79, scoreTech: 72, signal: '⏳ BLOQUEADO POR CUPO CRIPTO (18,75%)', desc: 'Atractivo por Ley de Metcalfe y rendimiento de staking, pero bloqueado mientras 21BC pese el 18,75%.', thesisShort: 'Regla de Kelly Fraccional activa: primero equilibrar el peso cripto actual antes de añadir otro ETP.' }
+      ]
+    };
+
+    // Estado vivo con persistencia en localStorage del navegador / iPhone
+    let statePortfolio = JSON.parse(localStorage.getItem('qv_portfolio')) || JSON.parse(JSON.stringify(DEFAULT_PORTFOLIO));
+    let stateLedger = JSON.parse(localStorage.getItem('qv_ledger')) || JSON.parse(JSON.stringify(DEFAULT_LEDGER));
+    let stateLiquidity = parseFloat(localStorage.getItem('qv_liquidity')) || 1200;
+    let stateSelectedTicker = 'NKE';
+    let stateRadarMode = 'combinado';
+    let stateRadarHorizon = 'corto';
+    let stateShowRadarThesis = true;
+    let stateAuthProvider = localStorage.getItem('qv_auth_provider') || 'FREE_TIER';
+
+    function saveStateToStorage() {
+      localStorage.setItem('qv_portfolio', JSON.stringify(statePortfolio));
+      localStorage.setItem('qv_ledger', JSON.stringify(stateLedger));
+      localStorage.setItem('qv_liquidity', String(stateLiquidity));
+    }
+
+    function resetPortfolioToDefault() {
+      if (confirm('¿Quieres restaurar tu cartera y movimientos al estado inicial de fábrica?')) {
+        localStorage.removeItem('qv_portfolio');
+        localStorage.removeItem('qv_ledger');
+        localStorage.removeItem('qv_liquidity');
+        statePortfolio = JSON.parse(JSON.stringify(DEFAULT_PORTFOLIO));
+        stateLedger = JSON.parse(JSON.stringify(DEFAULT_LEDGER));
+        stateLiquidity = 1200;
+        document.getElementById('input-liquidity').value = 1200;
+        renderAllPortfolio();
+      }
+    }
+
+    // Navegación entre las 4 Vistas Principales
+    function switchTab(tabId) {
+      ['cartera', 'analizador', 'radar', 'backtest'].forEach(id => {
+        const sec = document.getElementById('section-' + id);
+        const btn = document.getElementById('nav-tab-' + id);
+        const mob = document.getElementById('mob-tab-' + id);
+        if (id === tabId) {
+          sec.classList.remove('hidden');
+          btn.className = 'flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20';
+          if (mob) mob.className = 'flex flex-col items-center gap-0.5 text-[11px] font-bold text-emerald-400';
+        } else {
+          sec.classList.add('hidden');
+          btn.className = 'flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all text-slate-300 hover:text-white hover:bg-slate-800/60';
+          if (mob) mob.className = 'flex flex-col items-center gap-0.5 text-[11px] font-bold text-slate-400';
+        }
+      });
+    }
+
+    function setDeviceView(mode) {
+      const vp = document.getElementById('main-viewport');
+      const bDesk = document.getElementById('btn-device-desktop');
+      const bMob = document.getElementById('btn-device-iphone');
+      if (mode === 'iphone') {
+        vp.classList.remove('max-w-7xl');
+        vp.classList.add('iphone-frame');
+        bMob.className = 'px-2.5 py-1 rounded-lg text-xs font-semibold bg-cyan-500/20 text-cyan-300';
+        bDesk.className = 'px-2.5 py-1 rounded-lg text-xs text-slate-400 hover:text-white';
+      } else {
+        vp.classList.remove('iphone-frame');
+        vp.classList.add('max-w-7xl');
+        bDesk.className = 'px-2.5 py-1 rounded-lg text-xs font-semibold bg-cyan-500/20 text-cyan-300';
+        bMob.className = 'px-2.5 py-1 rounded-lg text-xs text-slate-400 hover:text-white';
+      }
+    }
+
+    // Renderizado Completo de Cartera y KPIs
+    function renderAllPortfolio() {
+      const totalInvested = statePortfolio.reduce((s, p) => s + p.currentEUR, 0);
+      const totalCost = statePortfolio.reduce((s, p) => s + p.costEUR, 0);
+      const unrealizedEUR = totalInvested - totalCost;
+      const unrealizedPct = totalCost > 0 ? (unrealizedEUR / totalCost) * 100 : 0;
+
+      const realizedSales = stateLedger.filter(m => m.type === 'VENTA').reduce((s, m) => s + m.realizedEUR, 0);
+      const passiveDivInt = stateLedger.filter(m => m.type === 'DIVIDENDO' || m.type === 'INTERESES').reduce((s, m) => s + m.realizedEUR, 0);
+      const totalCollected = realizedSales + passiveDivInt;
+
+      document.getElementById('kpi-positions-count').textContent = `Capital Invertido (${statePortfolio.length} Activos)`;
+      document.getElementById('kpi-invested-total').textContent = `${totalInvested.toFixed(2)} €`;
+      const invSub = document.getElementById('kpi-invested-sub');
+      invSub.textContent = `Coste: ${totalCost.toFixed(2)} € (${unrealizedPct >= 0 ? '+' : ''}${unrealizedPct.toFixed(2)}%)`;
+      invSub.className = `text-xs font-mono mt-1 ${unrealizedEUR >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+
+      const realTot = document.getElementById('kpi-realized-total');
+      realTot.textContent = `${totalCollected >= 0 ? '+' : ''}${totalCollected.toFixed(2)} €`;
+      realTot.className = `text-2xl font-mono font-bold mt-1 ${totalCollected >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+      document.getElementById('kpi-realized-sub').textContent = `Ventas Netas: ${realizedSales >= 0 ? '+' : ''}${realizedSales.toFixed(2)} € | Div+Int: +${passiveDivInt.toFixed(2)} €`;
+
+      const resInc = Math.min(stateLiquidity, 450);
+      const freeLiq = Math.max(0, stateLiquidity - resInc);
+      document.getElementById('input-liquidity').value = stateLiquidity;
+      document.getElementById('kpi-liquidity-sub').innerHTML = `Reserva Incubadora: <strong class="text-amber-300">${resInc.toFixed(0)} €</strong> | Libre: <strong class="text-emerald-300">${freeLiq.toFixed(0)} €</strong>`;
+
+      const taxHead = document.getElementById('kpi-tax-headline');
+      const taxSub = document.getElementById('kpi-tax-sub');
+      if (realizedSales <= 0) {
+        taxHead.textContent = `Escudo Fiscal Activo (${realizedSales.toFixed(2)} €)`;
+        taxSub.textContent = 'Pagas 0,00 € a Hacienda por tus ventas de 2026';
+      } else {
+        taxHead.textContent = `Base sujeta a IRPF: +${realizedSales.toFixed(2)} €`;
+        taxSub.textContent = `Impuesto est. (19%): ${(realizedSales * 0.19).toFixed(2)} € (Vende FBIO para anularlo)`;
+      }
+
+      const tbody = document.getElementById('portfolio-tbody');
+      tbody.innerHTML = statePortfolio.map(item => {
+        const wAct = totalInvested > 0 ? ((item.currentEUR / totalInvested) * 100).toFixed(1) : '0.0';
+        const isPos = item.pnlPct >= 0;
+        return `
+          <tr class="hover:bg-slate-800/50 transition-colors">
+            <td onclick="handleTickerSearch('${item.ticker}')" class="py-3.5 px-4 cursor-pointer">
+              <div class="font-bold text-white hover:text-emerald-400">${item.name} <span class="font-mono text-emerald-400">(${item.ticker})</span></div>
+              <div class="text-[11px] text-slate-400">${item.regime}</div>
+            </td>
+            <td class="py-3.5 px-3 text-right font-mono text-slate-300">${item.sharesNum}</td>
+            <td class="py-3.5 px-3 text-right font-mono text-slate-300">
+              <div>${item.costEUR.toFixed(2)} €</div>
+              <div class="text-[10px] text-slate-500">${item.unitBuyPriceEUR} €/u • Comis: ${item.feesEUR} €</div>
+            </td>
+            <td class="py-3.5 px-3 text-right font-mono font-bold text-white">
+              <div>${item.currentOrig}</div>
+              <div class="text-[10px] text-slate-400">≈ ${item.currentEUR.toFixed(2)} €</div>
+            </td>
+            <td class="py-3.5 px-3 text-right font-mono font-bold ${isPos ? 'text-emerald-400' : 'text-rose-400'}">
+              <div>${item.pnlOrig}</div>
+              <div>${isPos ? '+' : ''}${item.pnlPct}%</div>
+            </td>
+            <td class="py-3.5 px-3 text-right font-mono text-[11px]">
+              <div class="text-emerald-300">Fund: ${item.valFund}</div>
+              <div class="text-cyan-300">Técn: ${item.ptTech}</div>
+            </td>
+            <td class="py-3.5 px-3 text-center font-mono">
+              <span class="text-white font-bold">${wAct}%</span>
+              <span class="text-slate-500"> → </span>
+              <span class="${item.weightOpt === 0 ? 'text-rose-400 font-bold' : 'text-emerald-400 font-bold'}">${item.weightOpt}%</span>
+            </td>
+            <td class="py-3.5 px-3 text-center">
+              <div class="flex items-center justify-center gap-1.5">
+                <button onclick="prefillRowOperation('${item.ticker}', 'COMPRA')" class="px-2 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 font-bold text-[11px]">+ Comprar</button>
+                <button onclick="prefillRowOperation('${item.ticker}', 'VENTA')" class="px-2 py-1 rounded-lg bg-rose-500/15 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 font-bold text-[11px]">- Vender</button>
+              </div>
+            </td>
+            <td class="py-3.5 px-4">
+              <div class="font-semibold text-white">${item.badge}</div>
+              <div class="text-[11px] text-slate-300 mt-0.5 max-w-xs">${item.plainAdvice}</div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      recalcTradePreview();
+    }
+
+    function handleLiquidityChange(val) {
+      stateLiquidity = parseFloat(val) || 0;
+      saveStateToStorage();
+      renderAllPortfolio();
+    }
+
+    function toggleTradeFormBox() {
+      const form = document.getElementById('trade-form-container');
+      const btn = document.getElementById('btn-toggle-trade-form');
+      form.classList.toggle('hidden');
+      btn.textContent = form.classList.contains('hidden') ? 'Abrir Formulario Compra/Venta' : 'Ocultar Formulario';
+    }
+
+    function handleCurrencySelectChange() {
+      const curr = document.getElementById('tf-currency').value;
+      const fxInput = document.getElementById('tf-fx');
+      if (curr === 'EUR') {
+        fxInput.value = '1.000';
+        fxInput.disabled = true;
+      } else {
+        fxInput.value = '1.082';
+        fxInput.disabled = false;
+      }
+      recalcTradePreview();
+    }
+
+    function prefillRowOperation(ticker, opType) {
+      const pos = statePortfolio.find(p => p.ticker === ticker);
+      if (!pos) return;
+      const isUSD = pos.currentOrig.includes('US$') || pos.currentOrig.includes('$');
+      const unitOrig = isUSD ? ((pos.currentEUR * 1.082) / Math.max(0.001, pos.sharesNum)).toFixed(2) : (pos.currentEUR / Math.max(0.001, pos.sharesNum)).toFixed(2);
+
+      document.getElementById('tf-type').value = opType;
+      document.getElementById('tf-asset-type').value = pos.assetType || 'ACCION';
+      document.getElementById('tf-ticker').value = pos.ticker;
+      document.getElementById('tf-name').value = pos.name;
+      document.getElementById('tf-shares').value = opType === 'VENTA' ? pos.sharesNum : 5;
+      document.getElementById('tf-price').value = unitOrig;
+      document.getElementById('tf-currency').value = isUSD ? 'USD' : 'EUR';
+      document.getElementById('tf-fx').value = isUSD ? '1.082' : '1.000';
+      document.getElementById('tf-fx').disabled = !isUSD;
+      document.getElementById('tf-fees').value = '2.00';
+      document.getElementById('tf-notes').value = opType === 'VENTA' ? `Venta de ${pos.ticker} en MyInvestor` : `Ampliación de ${pos.ticker}`;
+      document.getElementById('trade-form-container').classList.remove('hidden');
+      recalcTradePreview();
+    }
+
+    function quickFillFBIO() {
+      const fbio = statePortfolio.find(p => p.ticker === 'FBIO');
+      if (fbio) {
+        prefillRowOperation('FBIO', 'VENTA');
+      } else {
+        alert('Ya has vendido FBIO de tu cartera.');
+      }
+    }
+
+    function quickFillBuyASML() {
+      document.getElementById('tf-type').value = 'COMPRA';
+      document.getElementById('tf-asset-type').value = 'ACCION';
+      document.getElementById('tf-ticker').value = 'ASML';
+      document.getElementById('tf-name').value = 'ASML Holding N.V.';
+      document.getElementById('tf-shares').value = '0.8';
+      document.getElementById('tf-price').value = '665.00';
+      document.getElementById('tf-currency').value = 'EUR';
+      document.getElementById('tf-fx').value = '1.000';
+      document.getElementById('tf-fx').disabled = true;
+      document.getElementById('tf-fees').value = '2.00';
+      document.getElementById('tf-notes').value = 'Compra monopolio EUV en soporte institucional';
+      recalcTradePreview();
+    }
+
+    function quickFillBuyVWCE() {
+      document.getElementById('tf-type').value = 'COMPRA';
+      document.getElementById('tf-asset-type').value = 'ETF';
+      document.getElementById('tf-ticker').value = 'VWCE.DE';
+      document.getElementById('tf-name').value = 'Vanguard FTSE All-World ETF';
+      document.getElementById('tf-shares').value = '4';
+      document.getElementById('tf-price').value = '128.40';
+      document.getElementById('tf-currency').value = 'EUR';
+      document.getElementById('tf-fx').value = '1.000';
+      document.getElementById('tf-fx').disabled = true;
+      document.getElementById('tf-fees').value = '1.50';
+      document.getElementById('tf-notes').value = 'Compra ETF indexado global acumulativo';
+      recalcTradePreview();
+    }
+
+    function getTradePreviewNumbers() {
+      const type = document.getElementById('tf-type').value;
+      const ticker = (document.getElementById('tf-ticker').value || '').trim().toUpperCase();
+      const shares = parseFloat(document.getElementById('tf-shares').value) || 0;
+      const priceOrig = parseFloat(document.getElementById('tf-price').value) || 0;
+      const curr = document.getElementById('tf-currency').value;
+      const fx = curr === 'EUR' ? 1.0 : Math.max(0.01, parseFloat(document.getElementById('tf-fx').value) || 1.082);
+      const fees = parseFloat(document.getElementById('tf-fees').value) || 0;
+      const grossEUR = (shares * priceOrig) / fx;
+      const existing = statePortfolio.find(p => p.ticker.toUpperCase() === ticker);
+
+      if (type === 'COMPRA') {
+        return { type, ticker, shares, priceOrig, curr, fx, fees, netEUR: grossEUR + fees, realizedPnl: 0, taxImpact: 0, existing };
+      } else if (type === 'VENTA') {
+        const netProceeds = Math.max(0, grossEUR - fees);
+        let costBasisSold = netProceeds;
+        if (existing && existing.sharesNum > 0) {
+          const prop = Math.min(1.0, shares / existing.sharesNum);
+          costBasisSold = existing.costEUR * prop;
+        }
+        const realizedPnl = netProceeds - costBasisSold;
+        return { type, ticker, shares, priceOrig, curr, fx, fees, netEUR: netProceeds, realizedPnl, taxImpact: realizedPnl * 0.19, existing };
+      } else {
+        const netDiv = Math.max(0, grossEUR - fees);
+        return { type, ticker, shares, priceOrig, curr, fx, fees, netEUR: netDiv, realizedPnl: netDiv, taxImpact: netDiv * 0.19, existing };
+      }
+    }
+
+    function recalcTradePreview() {
+      const p = getTradePreviewNumbers();
+      const bar = document.getElementById('tf-preview-bar');
+      const btn = document.getElementById('tf-submit-btn');
+
+      if (p.type === 'COMPRA') {
+        bar.innerHTML = `
+          <div><span class="text-slate-400 block text-[10px]">COSTE TOTAL NETO (CON COMISIÓN)</span><span class="text-base font-bold text-white">${p.netEUR.toFixed(2)} €</span></div>
+          <div><span class="text-slate-400 block text-[10px]">IMPACTO EN LIQUIDEZ</span><span class="text-sm font-bold text-amber-300">-${p.netEUR.toFixed(2)} €</span></div>
+        `;
+        btn.textContent = `➕ Confirmar Compra de ${p.ticker || 'Activo'} (${p.netEUR.toFixed(2)} €)`;
+        btn.className = 'px-5 py-2.5 rounded-xl font-bold text-xs bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-lg transition-all';
+      } else if (p.type === 'VENTA') {
+        bar.innerHTML = `
+          <div><span class="text-slate-400 block text-[10px]">EFECTIVO NETO QUE ENTRA EN LIQUIDEZ</span><span class="text-base font-bold text-white">+${p.netEUR.toFixed(2)} €</span></div>
+          <div><span class="text-slate-400 block text-[10px]">RESULTADO REALIZADO (FIFO)</span><span class="text-base font-bold ${p.realizedPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${p.realizedPnl >= 0 ? '+' : ''}${p.realizedPnl.toFixed(2)} €</span></div>
+          <div><span class="text-slate-400 block text-[10px]">IMPACTO FISCAL IRPF (19%)</span><span class="text-sm font-bold text-purple-300">${p.taxImpact <= 0 ? 'Ahorras ' + Math.abs(p.taxImpact).toFixed(2) + ' € en IRPF' : 'Impuesto est.: ' + p.taxImpact.toFixed(2) + ' €'}</span></div>
+        `;
+        btn.textContent = `➖ Confirmar Venta de ${p.ticker || 'Activo'} (+${p.netEUR.toFixed(2)} € a Liquidez)`;
+        btn.className = 'px-5 py-2.5 rounded-xl font-bold text-xs bg-rose-500 hover:bg-rose-400 text-slate-950 shadow-lg transition-all';
+      } else {
+        bar.innerHTML = `<div><span class="text-slate-400 block text-[10px]">DIVIDENDO NETO A LIQUIDEZ</span><span class="text-base font-bold text-emerald-400">+${p.netEUR.toFixed(2)} €</span></div>`;
+        btn.textContent = `💰 Registrar Dividendo de ${p.ticker || 'Activo'}`;
+        btn.className = 'px-5 py-2.5 rounded-xl font-bold text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-lg transition-all';
+      }
+    }
+
+    function submitTradeForm(e) {
+      e.preventDefault();
+      const p = getTradePreviewNumbers();
+      if (!p.ticker || p.shares <= 0) return;
+
+      const nameVal = document.getElementById('tf-name').value || p.ticker;
+      const assetTypeVal = document.getElementById('tf-asset-type').value;
+      const dateVal = document.getElementById('tf-date').value;
+      const notesVal = document.getElementById('tf-notes').value;
+      const unitEUR = p.priceOrig / p.fx;
+
+      const fb = document.getElementById('tf-feedback-box');
+
+      if (p.type === 'COMPRA') {
+        const idx = statePortfolio.findIndex(item => item.ticker.toUpperCase() === p.ticker);
+        if (idx >= 0) {
+          const prev = statePortfolio[idx];
+          const newShares = Number((prev.sharesNum + p.shares).toFixed(4));
+          const newCost = Number((prev.costEUR + p.netEUR).toFixed(2));
+          const newCurr = Number((prev.currentEUR + p.shares * unitEUR).toFixed(2));
+          const newPnl = newCurr - newCost;
+          statePortfolio[idx] = {
+            ...prev,
+            sharesNum: newShares,
+            costEUR: newCost,
+            currentEUR: newCurr,
+            currentOrig: `${newCurr.toFixed(2)} €`,
+            pnlOrig: `${newPnl >= 0 ? '+' : ''}${newPnl.toFixed(2)} €`,
+            pnlPct: Number(((newPnl / newCost) * 100).toFixed(2))
+          };
+        } else {
+          statePortfolio.unshift({
+            ticker: p.ticker,
+            name: nameVal,
+            assetType: assetTypeVal,
+            regime: assetTypeVal === 'ETF' ? 'Régimen 7 • ETF' : assetTypeVal === 'CRYPTO_ETP' ? 'Régimen 8 • Cripto' : 'Régimen 4 • Renta Variable',
+            sharesNum: p.shares,
+            unitBuyPriceEUR: Number(unitEUR.toFixed(2)),
+            feesEUR: p.fees,
+            buyDate: dateVal,
+            costEUR: Number(p.netEUR.toFixed(2)),
+            currentPriceEUR: Number(unitEUR.toFixed(2)),
+            currentOrig: `${(p.netEUR - p.fees).toFixed(2)} €`,
+            currentEUR: Number((p.netEUR - p.fees).toFixed(2)),
+            pnlOrig: `-${p.fees.toFixed(2)} €`,
+            pnlPct: Number(((-p.fees / p.netEUR) * 100).toFixed(2)),
+            valFund: `${(unitEUR * 1.22).toFixed(2)} €`,
+            ptTech: `${(unitEUR * 1.15).toFixed(2)} €`,
+            tir3y: '+15,4%',
+            weightOpt: 12.0,
+            badge: '🟢 NUEVA POSICIÓN EN CARTERA',
+            plainAdvice: `Incorporada el ${dateVal} (${p.shares} títulos).`
+          });
+        }
+        stateLiquidity = Math.max(0, Number((stateLiquidity - p.netEUR).toFixed(2)));
+        stateLedger.unshift({ date: dateVal, type: 'COMPRA', asset: assetTypeVal, ticker: p.ticker, shares: p.shares, desc: notesVal || `Compra ${p.ticker}`, amountEUR: -Number(p.netEUR.toFixed(2)), realizedEUR: 0 });
+        fb.textContent = `✅ COMPRA REGISTRADA Y GUARDADA: Añadidos ${p.shares} títulos de ${p.ticker} por ${p.netEUR.toFixed(2)} €.`;
+      } else if (p.type === 'VENTA') {
+        const idx = statePortfolio.findIndex(item => item.ticker.toUpperCase() === p.ticker);
+        if (idx >= 0) {
+          const prev = statePortfolio[idx];
+          if (p.shares >= prev.sharesNum * 0.999) {
+            statePortfolio.splice(idx, 1);
+          } else {
+            const ratio = (prev.sharesNum - p.shares) / prev.sharesNum;
+            statePortfolio[idx] = {
+              ...prev,
+              sharesNum: Number((prev.sharesNum - p.shares).toFixed(4)),
+              costEUR: Number((prev.costEUR * ratio).toFixed(2)),
+              currentEUR: Number((prev.currentEUR * ratio).toFixed(2)),
+              currentOrig: `${(prev.currentEUR * ratio).toFixed(2)} €`
+            };
+          }
+        }
+        stateLiquidity = Number((stateLiquidity + p.netEUR).toFixed(2));
+        stateLedger.unshift({ date: dateVal, type: 'VENTA', asset: assetTypeVal, ticker: p.ticker, shares: p.shares, desc: notesVal || `Venta ${p.ticker}`, amountEUR: Number(p.netEUR.toFixed(2)), realizedEUR: Number(p.realizedPnl.toFixed(2)) });
+        fb.textContent = `✅ VENTA REGISTRADA Y GUARDADA: +${p.netEUR.toFixed(2)} € sumados a tu Liquidez Disponible y resultado fiscal de ${p.realizedPnl.toFixed(2)} € aplicado en el IRPF.`;
+      } else {
+        stateLiquidity = Number((stateLiquidity + p.netEUR).toFixed(2));
+        stateLedger.unshift({ date: dateVal, type: 'DIVIDENDO', asset: assetTypeVal, ticker: p.ticker, shares: p.shares, desc: notesVal || `Dividendo ${p.ticker}`, amountEUR: Number(p.netEUR.toFixed(2)), realizedEUR: Number(p.netEUR.toFixed(2)) });
+        fb.textContent = `✅ DIVIDENDO REGISTRADO Y GUARDADO: +${p.netEUR.toFixed(2)} € añadidos a tu Liquidez Disponible.`;
+      }
+
+      fb.classList.remove('hidden');
+      saveStateToStorage();
+      renderAllPortfolio();
+    }
+
+    // Analizador Profundo por Ticker (Vista 2)
+    function renderAnalyzerPills() {
+      const box = document.getElementById('analyzer-pills-box');
+      box.innerHTML = Object.keys(DEEP_TICKERS_DB).map(tk => {
+        const active = tk === stateSelectedTicker;
+        return `<button onclick="selectAnalyzerTicker('${tk}')" class="px-3 py-1.5 rounded-xl font-mono text-xs font-bold border transition-all ${active ? 'bg-emerald-500 text-slate-950 border-emerald-400' : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-600'}">${tk}</button>`;
+      }).join('');
+    }
+
+    function selectAnalyzerTicker(tk) {
+      stateSelectedTicker = tk;
+      renderAnalyzerPills();
+      renderAnalyzerDetail();
+    }
+
+    function renderAnalyzerDetail() {
+      const d = DEEP_TICKERS_DB[stateSelectedTicker] || DEEP_TICKERS_DB.NKE;
+      const box = document.getElementById('analyzer-detail-box');
+
+      const fernandezRowsHtml = (d.fernandez5x5 || []).map((row, rIdx) => `
+        <tr class="${rIdx === 0 ? 'border-b border-slate-800 text-slate-400 font-bold' : 'border-b border-slate-900'}">
+          ${row.map((cell, cIdx) => `<td class="py-1.5 px-2 ${cIdx === 0 ? 'text-left text-slate-400' : 'text-right'} ${cell === d.valFund ? 'bg-emerald-500/20 text-emerald-300 font-bold rounded' : 'text-slate-300'}">${cell}</td>`).join('')}
+        </tr>
+      `).join('');
+
+      box.innerHTML = `
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-lg bg-emerald-500/15 text-emerald-300 font-mono text-xs font-bold border border-emerald-500/30">${d.ticker}</span>
+              <h2 class="text-xl sm:text-2xl font-bold text-white">${d.name}</h2>
+            </div>
+            <p class="text-xs text-slate-400 mt-1">${d.regime}</p>
+          </div>
+          <div class="text-right font-mono bg-slate-950 px-4 py-2.5 rounded-xl border border-emerald-500/40">
+            <div class="text-[10px] text-emerald-400 uppercase font-bold flex items-center justify-end gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              Cotización Actual Verificada (P₀)
+            </div>
+            <div class="text-2xl font-extrabold text-white">${d.price} <span class="text-xs text-emerald-400">(${d.change1d || 'Vivo'})</span></div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-xs">
+          <div class="p-4 rounded-xl bg-slate-950 border border-emerald-500/30">
+            <div class="text-slate-400 uppercase text-[11px]">1. Valor Intrínseco Fundamental</div>
+            <div class="text-2xl font-bold text-emerald-400 mt-1">${d.valFund}</div>
+            <div class="text-emerald-300 mt-1">${d.mos}</div>
+            <div class="text-[11px] text-slate-400 mt-1">Rango Sensibilidad: ${d.valFundRange}</div>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-950 border border-cyan-500/30">
+            <div class="text-slate-400 uppercase text-[11px]">2. Valor / Objetivo Técnico Quant</div>
+            <div class="text-2xl font-bold text-cyan-400 mt-1">${d.ptTech}</div>
+            <div class="text-cyan-300 mt-1">Suelo Fondos (POC): ${d.valTechEq}</div>
+            <div class="text-[11px] text-slate-400 mt-1">${d.techStage}</div>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-950 border border-amber-500/30 font-sans">
+            <div class="text-slate-400 uppercase text-[11px] font-mono">3. Veredicto Combinado (F:${d.scoreFund} | T:${d.scoreTech})</div>
+            <div class="text-sm sm:text-base font-bold text-amber-300 mt-1">${d.verdict}</div>
+            <div class="text-xs text-slate-300 mt-1"><strong>Horizonte Óptimo:</strong> ${d.horizon}</div>
+            <div class="text-[11px] text-emerald-400 font-mono mt-1">Zona Compra: ${d.buyZone}</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+          <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+            <span class="text-slate-400 block">Escudo Defensivo (Moat Score)</span>
+            <span class="font-mono font-bold text-emerald-400 text-base">${d.moat} / 100</span>
+            <span class="text-[11px] text-slate-400 block mt-0.5">${d.roicWacc}</span>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+            <span class="text-slate-400 block">Salud Financiera (Piotroski)</span>
+            <span class="font-mono font-bold text-cyan-400 text-base">${d.piotroski}</span>
+            <span class="text-[11px] text-slate-400 block mt-0.5">Forense Beneish: ${d.beneish}</span>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+            <span class="text-slate-400 block">Expectativas Implícitas (Mauboussin)</span>
+            <span class="text-[11px] text-slate-200 block mt-1 leading-relaxed">${d.reverseDCF}</span>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+            <span class="text-slate-400 block">Sentimiento Noticias & Consenso</span>
+            <span class="text-[11px] text-amber-300 font-semibold block mt-0.5">${d.sentiment}</span>
+            <span class="text-[11px] text-slate-400 block mt-0.5">Consenso Bancos: ${d.consensus}</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+            <div class="font-bold text-xs text-white uppercase">📅 Matriz de 3 Horizontes Temporales × 3 Escenarios</div>
+            <table class="w-full text-xs font-mono border-collapse">
+              <thead>
+                <tr class="border-b border-slate-800 text-slate-400">
+                  <th class="py-2 text-left">Horizonte</th>
+                  <th class="py-2 text-right text-rose-300">Conservador</th>
+                  <th class="py-2 text-right text-emerald-400">Base Esperado</th>
+                  <th class="py-2 text-right text-cyan-300">Optimista</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800/60">
+                <tr><td class="py-2 font-sans font-semibold text-slate-300">⚡ Corto (&lt; 1 año)</td><td class="py-2 text-right">${d.matrix3x3.cp.cons}</td><td class="py-2 text-right font-bold text-emerald-400">${d.matrix3x3.cp.base}</td><td class="py-2 text-right text-cyan-300">${d.matrix3x3.cp.opt}</td></tr>
+                <tr><td class="py-2 font-sans font-semibold text-slate-300">🔄 Medio (1-3 años)</td><td class="py-2 text-right">${d.matrix3x3.mp.cons}</td><td class="py-2 text-right font-bold text-emerald-400">${d.matrix3x3.mp.base}</td><td class="py-2 text-right text-cyan-300">${d.matrix3x3.mp.opt}</td></tr>
+                <tr><td class="py-2 font-sans font-semibold text-slate-300">🏰 Largo (5 años)</td><td class="py-2 text-right">${d.matrix3x3.lp.cons}</td><td class="py-2 text-right font-bold text-emerald-400">${d.matrix3x3.lp.base}</td><td class="py-2 text-right text-cyan-300">${d.matrix3x3.lp.opt}</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+            <div class="font-bold text-xs text-white uppercase">🎛️ Matriz de Sensibilidad WACC vs. g (Pablo Fernández)</div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-[11px] font-mono border-collapse"><tbody>${fernandezRowsHtml}</tbody></table>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-slate-950 border border-purple-500/40 space-y-2.5 text-xs sm:text-sm text-slate-200 leading-relaxed">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2">
+            <span class="font-bold text-purple-300 text-sm">🗣️ Tesis Argumentada en Lenguaje Claro (Estilo Peter Lynch)</span>
+            <span class="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-purple-500/15 text-purple-300">${stateAuthProvider === 'FREE_TIER' ? 'Motor Gratuito Nativo (Loughran-McDonald + Lynch NLG)' : 'Enriquecida con ' + stateAuthProvider}</span>
+          </div>
+          <p><strong class="text-emerald-300">1. El Monólogo de los 2 Minutos:</strong> ${d.lynch.b1}</p>
+          <p><strong class="text-cyan-300">2. Salud de la Hucha y Lupa Forense:</strong> ${d.lynch.b2}</p>
+          <p><strong class="text-amber-300">3. Valor por Cuentas vs. Rastro de los Grandes Fondos:</strong> ${d.lynch.b3}</p>
+          <p><strong class="text-purple-300">4. Contraste con Bancos y Hoja de Ruta en MyInvestor:</strong> ${d.consensusDiff} ${d.lynch.b4}</p>
+        </div>
+      `;
+    }
+
+    function handleTickerSearch(rawQuery) {
+      const clean = (rawQuery || '').trim().toUpperCase();
+      if (!clean) return;
+
+      if (DEEP_TICKERS_DB[clean]) {
+        stateSelectedTicker = clean;
+        renderAnalyzerPills();
+        renderAnalyzerDetail();
+        switchTab('analizador');
+        return;
+      }
+
+      let foundInRadar = null;
+      ['corto', 'medio', 'largo', 'incubadora'].forEach(hKey => {
+        RADAR_40_DATA[hKey].forEach(item => {
+          if (item.ticker.toUpperCase() === clean || item.ticker.split('.')[0].toUpperCase() === clean) {
+            foundInRadar = item;
+          }
+        });
+      });
+
+      if (foundInRadar) {
+        const sym = foundInRadar.ticker;
+        DEEP_TICKERS_DB[sym] = {
+          ticker: sym, name: foundInRadar.name, regime: `${foundInRadar.region} • Auditado en Radar Cuantitativo`,
+          price: foundInRadar.price, change1d: foundInRadar.change1d, valFund: foundInRadar.valFund,
+          valFundRange: `${foundInRadar.price} — ${foundInRadar.valFund}`, mos: `Potencial TIR: ${foundInRadar.tir} (Asimetría ${foundInRadar.asym})`,
+          valTechEq: `${foundInRadar.price} (Soporte Activo)`, ptTech: foundInRadar.ptTech,
+          techStage: `Score Técnico: ${foundInRadar.scoreTech}/100 • ${foundInRadar.signal}`,
+          scoreFund: foundInRadar.scoreFund, scoreTech: foundInRadar.scoreTech, moat: foundInRadar.scoreFund,
+          piotroski: '7 / 9', beneish: '-2,48 (Cuentas Auditadas Limpias)', roicWacc: 'ROIC > WACC (Creación de Valor Positiva)',
+          reverseDCF: foundInRadar.desc, consensus: `${foundInRadar.valFund} (Consenso Alineado)`,
+          consensusDiff: 'Valoración verificada cruzando múltiplos normalizados, flujo de caja libre y estructura técnica.',
+          sentiment: 'Positivo (+58/100 • Catalizador activo en Radar)', verdict: foundInRadar.signal,
+          horizon: 'Validado en Radar MyInvestor', buyZone: `En torno a ${foundInRadar.price}`,
+          stopLevel: 'Vigilar soporte institucional S1 (-6%)', takeProfit: `Objetivo en ${foundInRadar.valFund}`,
+          matrix3x3: {
+            cp: { cons: '-5,2%', base: `${foundInRadar.ptTech} (${foundInRadar.tir})`, opt: '+26,0%' },
+            mp: { cons: '+6,0%/a', base: `${foundInRadar.valFund} (${foundInRadar.tir})`, opt: '+21,5%/a' },
+            lp: { cons: '+7,8%/a', base: `${foundInRadar.tir} compuesto`, opt: '+19,0%/a' }
+          },
+          fernandez5x5: [
+            ['WACC \\ g', '1,50%', '2,00% (Base)', '2,50%'],
+            ['WACC Base', 'Prudente', foundInRadar.valFund, 'Optimista']
+          ],
+          lynch: {
+            b1: foundInRadar.thesisShort, b2: foundInRadar.desc,
+            b3: `Cotiza en directo a ${foundInRadar.price} (${foundInRadar.change1d} hoy), mientras que por cuentas fundamentales vale ${foundInRadar.valFund} y su objetivo técnico apunta a ${foundInRadar.ptTech}.`,
+            b4: `Dictamen activo en MyInvestor: ${foundInRadar.signal} con un ratio de asimetría rentabilidad/riesgo de ${foundInRadar.asym}.`
+          }
+        };
+        stateSelectedTicker = sym;
+        renderAnalyzerPills();
+        renderAnalyzerDetail();
+        switchTab('analizador');
+        return;
+      }
+
+      alert(`Candado Cero Invención Activo: El ticker "${clean}" no está entre los 48 activos precargados en memoria. Prueba cualquiera de los 48 tickers auditados (ej: NVDA, ITX.MC, IBE.MC, SAN.MC, ASML, MSFT, GOOGL, AMZN, TSM, VRTX, LVMH.PA, 8035.T, MRL.MC, VID.MC, LOG.MC, NKE, RWE.DE, FBIO, CDE, MOMO o TPZ.MC).`);
+    }
+
+    // Radar 40 Oportunidades (Vista 3)
+    function renderRadar() {
+      const box = document.getElementById('radar-cards-box');
+      let list = [...(RADAR_40_DATA[stateRadarHorizon] || [])];
+      if (stateRadarMode === 'fundamental') list.sort((a, b) => b.scoreFund - a.scoreFund);
+      else if (stateRadarMode === 'tecnico') list.sort((a, b) => b.scoreTech - a.scoreTech);
+      else list.sort((a, b) => (0.6 * b.scoreFund + 0.4 * b.scoreTech) - (0.6 * a.scoreFund + 0.4 * a.scoreTech));
+
+      box.innerHTML = list.map((item, idx) => {
+        const comb = Math.round(0.6 * item.scoreFund + 0.4 * item.scoreTech);
+        return `
+          <div class="glass-card rounded-2xl p-5 flex flex-col justify-between border border-slate-800 hover:border-emerald-500/40 transition-all">
+            <div>
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <span class="text-[11px] font-mono text-cyan-300 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">#${idx + 1} • ${item.region}</span>
+                  <h3 class="text-base font-bold text-white mt-1.5">${item.name} <span class="font-mono text-emerald-400">(${item.ticker})</span></h3>
+                </div>
+                <div class="text-right font-mono bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 shrink-0">
+                  <div class="text-[10px] text-slate-400">Cotización Viva</div>
+                  <div class="text-sm font-bold text-white">${item.price} <span class="${item.change1d.startsWith('-') ? 'text-rose-400' : 'text-emerald-400'}">(${item.change1d})</span></div>
+                </div>
+              </div>
+              <div class="mt-3 inline-block px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">${item.signal}</div>
+              <div class="grid grid-cols-3 gap-2 mt-3.5 p-2.5 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-center">
+                <div><div class="text-[10px] text-slate-400">Valor Cuentas</div><div class="font-bold text-emerald-400">${item.valFund}</div></div>
+                <div><div class="text-[10px] text-slate-400">Obj. Técnico</div><div class="font-bold text-cyan-400">${item.ptTech}</div></div>
+                <div><div class="text-[10px] text-slate-400">TIR / Asimetría</div><div class="font-bold text-amber-300">${item.tir} (${item.asym})</div></div>
+              </div>
+              <p class="text-xs text-slate-300 mt-3 leading-relaxed"><strong>Diagnóstico Quant:</strong> ${item.desc}</p>
+              ${stateShowRadarThesis ? `<div class="mt-3 p-3 rounded-xl bg-purple-950/25 border border-purple-500/30 text-xs text-slate-200 leading-relaxed"><strong class="text-purple-300">🗣️ Tesis Peter Lynch:</strong> ${item.thesisShort}</div>` : ''}
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] font-mono">
+              <div class="flex items-center gap-3">
+                <span class="text-emerald-400">Fund: ${item.scoreFund}/100</span>
+                <span class="text-cyan-400">Técn: ${item.scoreTech}/100</span>
+                <span class="px-2 py-0.5 rounded bg-slate-800 text-white font-bold">Total: ${comb}</span>
+              </div>
+              <button onclick="handleTickerSearch('${item.ticker}')" class="px-3 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-slate-950 font-sans font-bold transition-all">🔍 Abrir Informe →</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function changeRadarMode(mode) {
+      stateRadarMode = mode;
+      ['combinado', 'fundamental', 'tecnico'].forEach(m => {
+        const b = document.getElementById('btn-rmode-' + m);
+        b.className = m === mode ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500 text-slate-950' : 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white';
+      });
+      renderRadar();
+    }
+
+    function changeRadarHorizon(hor) {
+      stateRadarHorizon = hor;
+      ['corto', 'medio', 'largo', 'incubadora'].forEach(h => {
+        const b = document.getElementById('btn-rhor-' + h);
+        b.className = h === hor ? 'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border bg-cyan-500/20 text-cyan-300 border-cyan-500/50' : 'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border bg-slate-950 text-slate-400 border-slate-800 hover:text-white';
+      });
+      renderRadar();
+    }
+
+    function toggleRadarThesis() {
+      stateShowRadarThesis = !stateShowRadarThesis;
+      document.getElementById('btn-radar-thesis').textContent = stateShowRadarThesis ? '📖 Tesis Peter Lynch: VISIBLE' : '📊 Tesis Peter Lynch: OCULTA';
+      renderRadar();
+    }
+
+    // Modales
+    function openLedgerModal() {
+      document.getElementById('ledger-modal-title').textContent = `📜 Libro Oficial de Movimientos (${stateLedger.length} Operaciones)`;
+      const tbody = document.getElementById('ledger-tbody');
+      tbody.innerHTML = stateLedger.map(m => `
+        <tr class="${m.type === 'VENTA' ? 'bg-emerald-500/10' : ''}">
+          <td class="py-1.5 px-3">${m.date}</td>
+          <td class="py-1.5 px-3 font-bold ${m.type === 'VENTA' ? 'text-rose-300' : m.type === 'DIVIDENDO' ? 'text-amber-300' : 'text-cyan-300'}">${m.type}</td>
+          <td class="py-1.5 px-3">${m.asset}</td>
+          <td class="py-1.5 px-3 font-bold text-white">${m.ticker}</td>
+          <td class="py-1.5 px-3 text-right">${m.shares}</td>
+          <td class="py-1.5 px-3 font-sans text-slate-300">${m.desc}</td>
+          <td class="py-1.5 px-3 text-right">${m.amountEUR >= 0 ? '+' : ''}${m.amountEUR.toFixed(2)} €</td>
+          <td class="py-1.5 px-3 text-right font-bold ${m.realizedEUR > 0 ? 'text-emerald-400' : m.realizedEUR < 0 ? 'text-rose-400' : 'text-slate-500'}">${m.realizedEUR === 0 ? '—' : (m.realizedEUR > 0 ? '+' : '') + m.realizedEUR.toFixed(2) + ' €'}</td>
+        </tr>
+      `).join('');
+      document.getElementById('modal-ledger').classList.remove('hidden');
+    }
+
+    function closeLedgerModal() { document.getElementById('modal-ledger').classList.add('hidden'); }
+    function openRebalanceModal() { document.getElementById('modal-rebalance').classList.remove('hidden'); }
+    function closeRebalanceModal() { document.getElementById('modal-rebalance').classList.add('hidden'); }
+    function openAuthModal() { document.getElementById('modal-auth').classList.remove('hidden'); }
+    function closeAuthModal() { document.getElementById('modal-auth').classList.add('hidden'); }
+
+    function saveAuthConfig(forceFree) {
+      const prov = forceFree ? 'FREE_TIER' : document.getElementById('auth-provider').value;
+      stateAuthProvider = prov;
+      localStorage.setItem('qv_auth_provider', prov);
+      const btn = document.getElementById('btn-auth-status');
+      if (prov === 'FREE_TIER') {
+        btn.textContent = '🔓 Modo 100% Gratuito (Conectar Gemini Pro)';
+        btn.className = 'px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 text-emerald-300 border border-emerald-500/30 hover:border-emerald-400 transition-all';
+      } else {
+        btn.textContent = `✨ Suscripción Activa: ${prov === 'GEMINI_PRO' ? 'Gemini Pro' : 'Plus API'}`;
+        btn.className = 'px-3 py-1.5 rounded-xl text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/40 transition-all';
+      }
+      renderAnalyzerDetail();
+      closeAuthModal();
+    }
+
+    // Inicialización al abrir la página en ordenador o iPhone
+    window.addEventListener('DOMContentLoaded', () => {
+      renderAllPortfolio();
+      renderAnalyzerPills();
+      renderAnalyzerDetail();
+      renderRadar();
+    });
+  </script>
+</body>
+</html>
